@@ -2,7 +2,28 @@
 
 _Last updated: 2026-07-14 (late) — two tracks now._
 
-## Track 2 (NEW): ASPIRE reproduction on original sim — branch `aspire_original_sim`
+## Track 2 update (2026-07-15): gap-fix program G1–G4 + G6 COMPLETE — 149 tests
+
+Third-party review (`docs/review_codex.md`) gap analysis vs the paper → 6-phase fix plan
+(`docs/superpowers/plans/2026-07-15-review-codex-gap-fixes.md`). Executed with
+subagent + two-stage review; every phase had a fix-first round, all re-approved:
+- **G1** AuditedEngine choke point (every program audited incl. validation), judge dedup.
+- **G2** Task dir materialized (traces/, task.md, skills.md via failure-token retrieval).
+- **G3** Trace-conditioned evosearch (history carries summaries, task_analysis.md ledger,
+  history_note), winner bundle durable BEFORE VALIDATION_DONE.
+- **G4** ExtractValidatedPatterns (extraction actor over winner bundle); admission bound
+  to the WINNING round's report (critical endswith bug caught in review); best-effort
+  extraction; ranked dedup.
+- **G6** Aliasing fix (validate a stable winner/program.py copy), BLOCKED.md + stale
+  clear, seed-attempt discipline, EXTRACTION_FAILED marker, findings.md, --tasks-root
+  campaign with progress.json.
+- **G5 (remaining, P0)**: wire run_episode() to real CaP-X on epyc + golden trace +
+  one real end-to-end Robosuite task. BLOCKED on connectivity: epyc lives on the
+  Tailscale overlay (10.10.5.x); Tailscale on the Mac is STOPPED — start it from the
+  menu bar, then check /etc/hosts (10.10.5.26) vs ~/.ssh/config (10.10.5.102) and fix
+  the stale pin before rsync + m0_rig_up.sh.
+
+## Track 2 (original): ASPIRE reproduction on original sim — branch `aspire_original_sim`
 
 Spec: `docs/superpowers/specs/2026-07-14-aspire-original-sim-design.md`. Plan (14 TDD
 tasks): `docs/superpowers/plans/2026-07-14-aspire-original-sim.md`. Executed via
