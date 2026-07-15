@@ -1,4 +1,48 @@
-# CLAUDE_HANDOFF — ASPIRE → AgiBot A2
+# CLAUDE_HANDOFF — ASPIRE
+
+_Last updated: 2026-07-14 (late) — two tracks now._
+
+## Track 2 (NEW): ASPIRE reproduction on original sim — branch `aspire_original_sim`
+
+Spec: `docs/superpowers/specs/2026-07-14-aspire-original-sim-design.md`. Plan (14 TDD
+tasks): `docs/superpowers/plans/2026-07-14-aspire-original-sim.md`. Executed via
+subagent-driven development: every task group spec-reviewed + quality-reviewed; 5
+fix-first rounds, all re-approved.
+
+**Built (all on the branch):** `aspire/` package — config ([RECONSTRUCTED] K/T/θ,
+logged per run by the CLI), schemas (pinned result.json / report.json contracts), audit
+(forbidden-API wall), markdown skill library, engines (FakeEngine + CapxEngine subprocess
+boundary), actors (headless `claude -p` wrappers, shim-tested; exact yes/no judge),
+evosearch (Algorithm 1, atomic checkpoints, crash-resume), coordinator (single-use S_val
+with STARTED/DONE/TAINTED markers, resume short-circuit, audit→judge admission),
+`python -m aspire.run` CLI (clean JSON line, exit 2 on domain errors). `prompts/` (3
+files, verbatim Appendix E excerpts + [RECONSTRUCTED] markers). `scripts/capx_execute.py`
+(GPU-box runner half of the engine contract, --selftest), `scripts/m0_rig_up.sh`,
+`scripts/m1_baseline.sh` (CAPX_MODEL mandatory). **93 tests green on Mac AND epyc**
+(box needs `-p no:anyio`); contract selftest verified on epyc.
+
+**Next operational steps (M0→M3):**
+1. On epyc: `cd ~/aspire_robot_engine && ./scripts/m0_rig_up.sh` — installs CaP-X,
+   GPU smoke, selftest; then the guided step: wire `run_episode()` in
+   `scripts/capx_execute.py` to the real CaP-X API, capture the golden episode, add the
+   golden regression test (`tests/aspire/golden/`).
+2. `CAPX_MODEL=<confirmed id> ./scripts/m1_baseline.sh` — OUR CaP-Agent0 baseline
+   numbers into `~/aspire_runs/m1_baseline/results.json`.
+3. M2: real actor runs via `python -m aspire.run --engine capx ...` per task — requires
+   materializing task context (traces/, skills.md, task.md) in the runner (documented
+   gap, see backlog). M3: evosearch on plateaued tasks (bimanual handover headline),
+   compare vs results.json.
+
+**M2 backlog (from reviews, all documented in code):** coordinator ignores
+`report.outcome` (a fail-report without fix_code.py surfaces as EngineError, exit 2 —
+should skip execution instead); task-context materialization (traces/skills.md/task.md)
+is the runner's job; evosearch M1 note (`_run_dir` multi-run generality unused);
+CapxEngine M2/M3 deferred minors (stdout buffering, stale result.json across restarts
+— mitigated by numbered exec dirs per instance).
+
+---
+
+## Track 1: AgiBot A2 execution layer — branch `aspire_a2_sim` (DONE, stable)
 
 _Last updated: 2026-07-14_
 
