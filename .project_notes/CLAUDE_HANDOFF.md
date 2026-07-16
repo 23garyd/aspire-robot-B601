@@ -2,7 +2,22 @@
 
 _Last updated: 2026-07-14 (late) — two tracks now._
 
-## Track 2 update (2026-07-15): gap-fix program G1–G4 + G6 COMPLETE — 149 tests
+## Track 2 result (2026-07-16): TREND REPRODUCED — M3 pilot complete
+
+**The reproduction's core claim landed.** Against our own M1 CaP-Agent0 baseline
+(runs/2026-07-15-m1-baseline-pilot/): two_arm_handover 30% -> **100%** (5/5 held-out,
+via evosearch round-1 after the Stage-1 repair failed), two_arm_lift 10% -> **100%**
+(single trace-guided repair). Paper's headline was 20% -> 92%. Full artifacts:
+runs/2026-07-16-m3-aspire-pilot/ (results.json, skills, winner programs, ledger).
+G5 done earlier same day (real CaP-X run_episode + golden trace + first live e2e run,
+runs/2026-07-15-first-live-e2e/). Infra on epyc: LLM proxy launcher ~/start_llm_proxy.sh
+(Anthropic OpenAI-compat, temperature patch in cap-x clone — diff archived at
+docs/patches/), M1 script scripts/m1_baseline.sh (TRIALS=100 for paper scale),
+M3 launcher ~/start_m3.sh. Remaining ideas: scale-up runs (TRIALS=100 / more val seeds),
+M4 LIBERO-Pro + transfer study, per-seed replay affordance for actors (both live actors
+filed BLOCKED.md about it), SOW M2 link work (NearLink kits + probe).
+
+## Track 2 (superseded heading): gap-fix program G1–G4 + G6 COMPLETE — 149 tests
 
 Third-party review (`docs/review_codex.md`) gap analysis vs the paper → 6-phase fix plan
 (`docs/superpowers/plans/2026-07-15-review-codex-gap-fixes.md`). Executed with
