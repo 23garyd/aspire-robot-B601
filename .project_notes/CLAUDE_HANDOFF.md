@@ -2,22 +2,30 @@
 
 _Last updated: 2026-07-17 — work handed over to epyc; continue from there._
 
-## ⚑ IN FLIGHT (2026-07-17 ~17:00 UTC): lift-repeats variance campaign
+## ⚑ BLOCKED ON API CREDITS (2026-07-17 ~19:00 UTC): lift-repeats variance campaign
 
-TODO #2 launched from epyc: **5 independent campaign repeats on two_arm_lift**
-(the variance instrument for the pilot-5/5 vs M3X-0/20 contradiction).
-Spec: `docs/superpowers/specs/2026-07-17-lift-repeats-variance-design.md`.
-Runner: `scripts/lift_repeats.sh` (committed); launcher `~/start_lift_repeats.sh`.
-- Design: each repeat fully isolated — fresh task dir (pristine M1 trial_01
-  baseline `code.py`, md5 0ada19ef), fresh EMPTY skill library, own exec root,
-  config identical to M3X (s_dbg 0-2, s_val 100-119, theta 1.0).
-- State: `~/aspire_runs/lift_repeats/rep_1..rep_5/`; log
-  `~/aspire_runs/lift_repeats/campaign.log`; pidfile `/tmp/lift_repeats.pid`.
-- ETA: ~2.4 h per failure-path repeat (worst case ~12 h). Resumable: rerun the
-  launcher; repeats with VALIDATION_DONE are skipped.
-- On completion: collect the 5 JSON result lines + per-repeat mechanism into
-  `runs/2026-07-17-lift-repeats/results.json`, compare against the two
-  historical points, and revisit backlog item "val-score gate on admission".
+TODO #2 ran from epyc: **campaign repeats on two_arm_lift** (variance instrument
+for the pilot-5/5 vs M3X-0/20 contradiction). **HALTED after 2 of 5 repeats —
+the Anthropic API credit balance is exhausted** (`claude -p` → "Credit balance
+is too low"). Spec: `docs/superpowers/specs/2026-07-17-lift-repeats-variance-design.md`.
+Runner: `scripts/lift_repeats.sh`; launcher `~/start_lift_repeats.sh`; results:
+`runs/2026-07-17-lift-repeats/results.json`.
+- **Valid so far (2/2 repeats succeeded)**: rep_1 val 20/20 (1.0), rep_2 val
+  19/20 (0.95) — both Stage-1 trace-guided repair, no evosearch. With history
+  (pilot success, M3X fail) that's **3 successes / 1 failure across 4 clean
+  runs**: lift repair looks predominantly successful; M3X 0/20 is looking like
+  the tail outcome, not the norm. NOT yet conclusive.
+- **reps 3,4,5 are INFRA failures (out of credits), NOT lift-repair failures** —
+  must not be counted against the success rate. rep_3 crashed mid-run (has a
+  partial fail report), rep_4 died immediately, rep_5 was killed while starting.
+- Each repeat is fully isolated: fresh task dir (pristine M1 trial_01 baseline
+  `code.py`, md5 0ada19ef), fresh EMPTY skill library, own exec root; config
+  identical to M3X (s_dbg 0-2, s_val 100-119, theta 1.0).
+- **TO RESUME once credits are topped up**:
+  `rm -rf ~/aspire_runs/lift_repeats/rep_3 ~/aspire_runs/lift_repeats/rep_4 ~/aspire_runs/lift_repeats/rep_5 && bash ~/start_lift_repeats.sh`
+  (reps 1,2 have VALIDATION_DONE and are skipped; 3,4,5 re-run fresh). Verify
+  first: `echo hi | claude -p "reply OK"` should NOT say credit balance too low.
+- Then finalize `results.json` and revisit backlog "val-score gate on admission".
 
 ## ⚑ HANDOVER TO EPYC (2026-07-17) — read this first
 
