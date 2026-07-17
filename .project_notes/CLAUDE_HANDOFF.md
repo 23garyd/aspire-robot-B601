@@ -2,6 +2,23 @@
 
 _Last updated: 2026-07-14 (late) — two tracks now._
 
+## Track 2 update (2026-07-16 late): replay affordance + M3X extended validation
+
+**Replay affordance shipped** (spec/plan docs 2026-07-16): actors get `./replay <prog>
+<seed>` (App E inner loop) — budgeted 3/seed, audited, S_val structurally unreachable.
+Live-validated end-to-end; first-ever actor runs with outcome "success" and no
+BLOCKED.md. R3 caught two only-live bugs: shim PYTHONPATH trailing-colon dual-import;
+seed_attempts shape crash (the G2-predicted one). 182 tests.
+
+**M3X (n=20 validation, replay-equipped actors)** — runs/2026-07-16-m3x-extended-validation/:
+- handover: baseline 30% → **95% (19/20)**, Stage-1 ONLY (replay replaced evosearch —
+  cheaper AND stronger than the pilot).
+- lift: **0/20 this run** vs 5/5 in the pilot — same baseline, different session:
+  agentic-repair variance dominates the hardest task; both debug rounds (9/9 replay
+  attempts each) and 15 search candidates all failed. Honest finding, in the results.
+- Backlog: consider val-score gate on skill admission (a skill was admitted from a
+  val-0.0 run); campaign repeats (N runs/task) are the right instrument for variance.
+
 ## Track 2 result (2026-07-16): TREND REPRODUCED — M3 pilot complete
 
 **The reproduction's core claim landed.** Against our own M1 CaP-Agent0 baseline
