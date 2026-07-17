@@ -1,6 +1,54 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-14 (late) — two tracks now._
+_Last updated: 2026-07-17 — work handed over to epyc; continue from there._
+
+## ⚑ HANDOVER TO EPYC (2026-07-17) — read this first
+
+Development moves from the Mac to **epyc** (user will work via remote desktop).
+Everything needed to continue lives on the box:
+
+**Where things are on epyc**
+- `~/aspire_robot_engine/` — THE repo, now a full git checkout (`.git` synced from the
+  Mac), branch `aspire_original_sim`. Same remotes: `origin` = 23garyd/aspire_a2_sim,
+  `aspire_demo` = 23garyd/aspire_demo. Run Claude Code from this directory.
+- `~/cap-x/` — CaP-X clone, submodules initialized, `uv sync --extra robosuite` done,
+  LLM-proxy temperature patch applied (diff archived at `docs/patches/`).
+- `~/aspire_runs/` — all live-run state (golden, m1_baseline, m3, m3x, r3_*).
+- `~/sow-2026-7-30w/` — SOW business folder (execution-map spec, M1 deliverable DRAFT,
+  link-probe measurement); synced from the Mac, local-only git repo (no remote).
+- Launcher scripts in `~/`: `start_llm_proxy.sh` (run FIRST for any LLM campaign; it
+  extracts ANTHROPIC_API_KEY from ~/.bashrc because the export sits after the
+  interactivity guard), `start_m1.sh`, `start_m3.sh`, `start_m3x.sh`,
+  `start_link_echo.sh`. Pattern: launch detached daemons via an on-box script
+  (inline `ssh setsid` dies with session teardown); liveness via pidfile
+  (`kill -0 $(cat /tmp/<name>.pid)`), never `pgrep -f` (self-match trap).
+- `claude` CLI at `~/.local/bin/claude` (works). `gh` at /usr/bin/gh — **check
+  `gh auth status` before pushing from epyc**; Mac pushed to aspire_demo as user
+  23garyd via `gh auth token -u 23garyd`. If epyc has no auth, run
+  `gh auth login` once, or keep pushing from the Mac.
+
+**Sanity check after taking over** (from `~/aspire_robot_engine/`):
+`git log --oneline -1` matches GitHub; `python3 -m pytest tests/ -q -p no:anyio`
+→ 182 passed (the `-p no:anyio` flag is required on this box).
+
+**TODO queue (user-facing, in priority order)**
+1. *User-side, blocking*: review the M1 deliverable report draft
+   (`~/sow-2026-7-30w/deliverables/M1-Deliverable-Report-DRAFT-2026-07-16.md`) — two
+   open decisions: include ASPIRE 100%/95% numbers at that detail level? offer
+   Futurewei reviewers repo access? Also: order NearLink dev kits (WS63/BS21-class);
+   optionally sign off the SOW execution-map spec.
+2. *Recommended next experiment*: campaign repeats (N runs/task) on two_arm_lift —
+   the variance instrument for the 0/20-vs-5/5 finding (M3X section below).
+3. *Design question*: validation-score gate on skill admission (a skill was admitted
+   from a val-0.0 run).
+4. *Deferred scale-up*: TRIALS=100 baseline re-run (expensive); M4 LIBERO-Pro +
+   LIBERO-90→Long transfer study; BEHAVIOR-1K stretch.
+5. *Watch*: NVIDIA ASPIRE open-source release — diff the `[RECONSTRUCTED]` markers
+   in `aspire/config.py` when it lands.
+
+**Standing code backlog** (tracked in plan docs): coordinator ignores
+`report.outcome`; replay-concurrency RMW is comment-only; `FakeEngine.describe`
+leaks scripted scores (test-only); `_run_dir` multi-run generality unused.
 
 ## Track 2 update (2026-07-16 late): replay affordance + M3X extended validation
 
