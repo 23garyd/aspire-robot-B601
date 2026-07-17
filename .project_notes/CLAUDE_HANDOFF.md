@@ -2,6 +2,23 @@
 
 _Last updated: 2026-07-17 — work handed over to epyc; continue from there._
 
+## ⚑ IN FLIGHT (2026-07-17 ~17:00 UTC): lift-repeats variance campaign
+
+TODO #2 launched from epyc: **5 independent campaign repeats on two_arm_lift**
+(the variance instrument for the pilot-5/5 vs M3X-0/20 contradiction).
+Spec: `docs/superpowers/specs/2026-07-17-lift-repeats-variance-design.md`.
+Runner: `scripts/lift_repeats.sh` (committed); launcher `~/start_lift_repeats.sh`.
+- Design: each repeat fully isolated — fresh task dir (pristine M1 trial_01
+  baseline `code.py`, md5 0ada19ef), fresh EMPTY skill library, own exec root,
+  config identical to M3X (s_dbg 0-2, s_val 100-119, theta 1.0).
+- State: `~/aspire_runs/lift_repeats/rep_1..rep_5/`; log
+  `~/aspire_runs/lift_repeats/campaign.log`; pidfile `/tmp/lift_repeats.pid`.
+- ETA: ~2.4 h per failure-path repeat (worst case ~12 h). Resumable: rerun the
+  launcher; repeats with VALIDATION_DONE are skipped.
+- On completion: collect the 5 JSON result lines + per-repeat mechanism into
+  `runs/2026-07-17-lift-repeats/results.json`, compare against the two
+  historical points, and revisit backlog item "val-score gate on admission".
+
 ## ⚑ HANDOVER TO EPYC (2026-07-17) — read this first
 
 Development moves from the Mac to **epyc** (user will work via remote desktop).
