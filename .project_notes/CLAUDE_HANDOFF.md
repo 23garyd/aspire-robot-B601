@@ -26,8 +26,10 @@ Everything needed to continue lives on the box:
 
 **Where things are on epyc**
 - `~/aspire_robot_engine/` — THE repo, now a full git checkout (`.git` synced from the
-  Mac), branch `aspire_original_sim`. Same remotes: `origin` = 23garyd/aspire_a2_sim,
-  `aspire_demo` = 23garyd/aspire_demo. Run Claude Code from this directory.
+  Mac), branch `aspire_original_sim`. **Canonical remote: `aspire_demo` =
+  https://github.com/23garyd/aspire_demo — push/pull there.** (`origin` =
+  23garyd/aspire_a2_sim is a legacy mirror; ignore it.) Run Claude Code from this
+  directory.
 - `~/cap-x/` — CaP-X clone, submodules initialized, `uv sync --extra robosuite` done,
   LLM-proxy temperature patch applied (diff archived at `docs/patches/`).
 - `~/aspire_runs/` — all live-run state (golden, m1_baseline, m3, m3x, r3_*).
@@ -40,11 +42,9 @@ Everything needed to continue lives on the box:
   (inline `ssh setsid` dies with session teardown); liveness via pidfile
   (`kill -0 $(cat /tmp/<name>.pid)`), never `pgrep -f` (self-match trap).
 - `claude` CLI at `~/.local/bin/claude` (works). `gh` at /usr/bin/gh, authenticated
-  as **23garyd** (verified 2026-07-17): `git push origin ...` works directly from
-  epyc. Pushing to `aspire_demo` (23garyd/aspire_demo) needs the 23garyd identity —
-  either `gh auth login` as 23garyd on epyc, or use the Mac's recipe:
-  `git -c credential.helper= -c credential.helper='!f() { echo username=23garyd;
-  echo password=$(gh auth token -u 23garyd); }; f' push aspire_demo aspire_original_sim`.
+  as **23garyd** (verified 2026-07-17, `gh auth setup-git` done): plain
+  `git push aspire_demo aspire_original_sim` works directly from epyc. All git
+  work uses user **23garyd** and repo **https://github.com/23garyd/aspire_demo**.
 
 **Sanity check after taking over** (from `~/aspire_robot_engine/`):
 `git log --oneline -1` matches GitHub; `python3 -m pytest tests/ -q -p no:anyio`
