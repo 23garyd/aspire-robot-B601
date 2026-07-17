@@ -22,10 +22,12 @@ Everything needed to continue lives on the box:
   `start_link_echo.sh`. Pattern: launch detached daemons via an on-box script
   (inline `ssh setsid` dies with session teardown); liveness via pidfile
   (`kill -0 $(cat /tmp/<name>.pid)`), never `pgrep -f` (self-match trap).
-- `claude` CLI at `~/.local/bin/claude` (works). `gh` at /usr/bin/gh — **check
-  `gh auth status` before pushing from epyc**; Mac pushed to aspire_demo as user
-  23garyd via `gh auth token -u 23garyd`. If epyc has no auth, run
-  `gh auth login` once, or keep pushing from the Mac.
+- `claude` CLI at `~/.local/bin/claude` (works). `gh` at /usr/bin/gh, authenticated
+  as **23garyd** (verified 2026-07-17): `git push origin ...` works directly from
+  epyc. Pushing to `aspire_demo` (23garyd/aspire_demo) needs the 23garyd identity —
+  either `gh auth login` as 23garyd on epyc, or use the Mac's recipe:
+  `git -c credential.helper= -c credential.helper='!f() { echo username=23garyd;
+  echo password=$(gh auth token -u 23garyd); }; f' push aspire_demo aspire_original_sim`.
 
 **Sanity check after taking over** (from `~/aspire_robot_engine/`):
 `git log --oneline -1` matches GitHub; `python3 -m pytest tests/ -q -p no:anyio`
