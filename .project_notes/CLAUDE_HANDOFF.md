@@ -69,9 +69,11 @@ Everything needed to continue lives on the box:
 2. ✔ DONE (2026-07-18): campaign repeats (N=5) on two_arm_lift — see the DONE
    section at the top. Result: lift repair is high-variance-not-bimodal; M3X 0/20
    was the tail, not a fluke.
-3. *Design question (now with 2 data points)*: validation-score gate on skill
-   admission — M3X admitted at val 0.0, rep_5 admitted 4 skills at val 0.10.
-   Strong candidate for the next code change.
+3. ✔ DONE (2026-07-17): validation-score gate on skill admission. Skills admitted
+   only when held-out val >= `cfg.admission_min_val` (default 0.5, 0.0 disables);
+   gate precedes extraction (no wasted tokens), writes `ADMISSION_GATED` marker,
+   CLI `--admission-min-val`. Commit f306e65, 184 tests. Closes the M3X-val-0.0 /
+   rep_5-val-0.10 skill-leak.
 4. *Deferred scale-up*: TRIALS=100 baseline re-run (expensive); M4 LIBERO-Pro +
    LIBERO-90→Long transfer study; BEHAVIOR-1K stretch.
 5. *Watch*: NVIDIA ASPIRE open-source release — diff the `[RECONSTRUCTED]` markers
