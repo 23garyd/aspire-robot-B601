@@ -2,30 +2,32 @@
 
 _Last updated: 2026-07-17 — work handed over to epyc; continue from there._
 
-## ⚑ BLOCKED ON API CREDITS (2026-07-17 ~19:00 UTC): lift-repeats variance campaign
+## ✔ DONE (2026-07-18): lift-repeats variance campaign — 5/5 complete
 
-TODO #2 ran from epyc: **campaign repeats on two_arm_lift** (variance instrument
-for the pilot-5/5 vs M3X-0/20 contradiction). **HALTED after 2 of 5 repeats —
-the Anthropic API credit balance is exhausted** (`claude -p` → "Credit balance
-is too low"). Spec: `docs/superpowers/specs/2026-07-17-lift-repeats-variance-design.md`.
-Runner: `scripts/lift_repeats.sh`; launcher `~/start_lift_repeats.sh`; results:
-`runs/2026-07-17-lift-repeats/results.json`.
-- **Valid so far (2/2 repeats succeeded)**: rep_1 val 20/20 (1.0), rep_2 val
-  19/20 (0.95) — both Stage-1 trace-guided repair, no evosearch. With history
-  (pilot success, M3X fail) that's **3 successes / 1 failure across 4 clean
-  runs**: lift repair looks predominantly successful; M3X 0/20 is looking like
-  the tail outcome, not the norm. NOT yet conclusive.
-- **reps 3,4,5 are INFRA failures (out of credits), NOT lift-repair failures** —
-  must not be counted against the success rate. rep_3 crashed mid-run (has a
-  partial fail report), rep_4 died immediately, rep_5 was killed while starting.
-- Each repeat is fully isolated: fresh task dir (pristine M1 trial_01 baseline
-  `code.py`, md5 0ada19ef), fresh EMPTY skill library, own exec root; config
-  identical to M3X (s_dbg 0-2, s_val 100-119, theta 1.0).
-- **TO RESUME once credits are topped up**:
-  `rm -rf ~/aspire_runs/lift_repeats/rep_3 ~/aspire_runs/lift_repeats/rep_4 ~/aspire_runs/lift_repeats/rep_5 && bash ~/start_lift_repeats.sh`
-  (reps 1,2 have VALIDATION_DONE and are skipped; 3,4,5 re-run fresh). Verify
-  first: `echo hi | claude -p "reply OK"` should NOT say credit balance too low.
-- Then finalize `results.json` and revisit backlog "val-score gate on admission".
+TODO #2 complete: **N=5 campaign repeats on two_arm_lift**, the variance
+instrument for the pilot-5/5 vs M3X-0/20 contradiction. Spec:
+`docs/superpowers/specs/2026-07-17-lift-repeats-variance-design.md`. Runner
+`scripts/lift_repeats.sh`; full results + archived logs in
+`runs/2026-07-17-lift-repeats/`. (Ran across two sessions: reps 1-2 on
+2026-07-17, then the Anthropic account ran out of credits mid-campaign; after a
+top-up, reps 3-5 were wiped and re-run FRESH — the exit-2 failures on the first
+attempt were credit exhaustion, NOT experiment outcomes.)
+
+- **FINDING — lift repair is genuinely high-variance but NOT bimodal.** Held-out
+  val scores across 7 independent runs (pilot, M3X, rep_1..5):
+  **1.0, 0.0, 1.0, 0.95, 0.80, 0.85, 0.10** (mean 0.67). 5/7 land a strong
+  program (val ≥ 0.80); 2/7 land in the weak tail (≤ 0.10). **M3X's 0/20 was
+  NOT a fluke or a bug — it is the extreme end of a real continuous
+  distribution, and rep_5 (0.10) independently reproduced the weak tail.** The
+  representative outcome is strong-but-imperfect (median val ~0.85); neither
+  extreme is "the truth."
+- **Mechanism split**: Stage-1 trace-guided repair alone solved 3/5 (rep 1,2,4,
+  all val ≥ 0.85). Evosearch was the winner on the 2 harder repeats — rescued
+  rep_3 to 0.80, but plateaued on rep_5 (dbg 0.667, val 0.10). Evosearch
+  reduces but does not eliminate the weak tail.
+- **Reinforces backlog "val-score gate on admission"**: rep_5 admitted 4 skills
+  at val 0.10 (M3X did the same at val 0.0). Two data points now argue for
+  gating skill admission on the winning round's validation score.
 
 ## ⚑ HANDOVER TO EPYC (2026-07-17) — read this first
 
@@ -64,10 +66,12 @@ Everything needed to continue lives on the box:
    open decisions: include ASPIRE 100%/95% numbers at that detail level? offer
    Futurewei reviewers repo access? Also: order NearLink dev kits (WS63/BS21-class);
    optionally sign off the SOW execution-map spec.
-2. *Recommended next experiment*: campaign repeats (N runs/task) on two_arm_lift —
-   the variance instrument for the 0/20-vs-5/5 finding (M3X section below).
-3. *Design question*: validation-score gate on skill admission (a skill was admitted
-   from a val-0.0 run).
+2. ✔ DONE (2026-07-18): campaign repeats (N=5) on two_arm_lift — see the DONE
+   section at the top. Result: lift repair is high-variance-not-bimodal; M3X 0/20
+   was the tail, not a fluke.
+3. *Design question (now with 2 data points)*: validation-score gate on skill
+   admission — M3X admitted at val 0.0, rep_5 admitted 4 skills at val 0.10.
+   Strong candidate for the next code change.
 4. *Deferred scale-up*: TRIALS=100 baseline re-run (expensive); M4 LIBERO-Pro +
    LIBERO-90→Long transfer study; BEHAVIOR-1K stretch.
 5. *Watch*: NVIDIA ASPIRE open-source release — diff the `[RECONSTRUCTED]` markers
