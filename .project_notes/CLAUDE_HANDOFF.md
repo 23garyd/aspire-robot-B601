@@ -2,6 +2,57 @@
 
 _Last updated: 2026-07-18 — work handed over to epyc; continue from there._
 
+## ▣ SESSION SUMMARY (2026-07-18) — compacted
+
+**Status:** Branch `aspire_original_sim` @ `12bc289`, pushed to `aspire_demo`.
+`python3 -m pytest tests/ -q -p no:anyio` → **196 passed**. No campaign currently
+running (`/tmp/lift_repeats.pid`, `/tmp/traces_ablation.pid` — check before
+launching anything). LLM proxy on :8110 launched via `~/start_llm_proxy.sh`.
+
+**What shipped this session (newest first):**
+1. **Traces-vs-retry ablation infra** — BUILT + merged, NOT run (needs credits).
+   Details in the section just below.
+2. **Val-score gate on skill admission** — commit `f306e65`. Skills admitted only
+   when held-out val ≥ `cfg.admission_min_val` (default 0.5; 0.0 disables). CLI
+   `--admission-min-val`. Closes the M3X-val-0.0 / rep_5-val-0.10 skill-leak.
+3. **Lift-repeats variance campaign (N=5)** — `runs/2026-07-17-lift-repeats/`.
+   Finding: lift repair is high-variance-not-bimodal (7-run val
+   1.0/0.0/1.0/0.95/0.80/0.85/0.10, mean 0.67); M3X 0/20 is the tail, not a fluke.
+4. **Before/after demo video** — rendered rep_1 winner (reward 1.00, lifts pot)
+   vs baseline (0.01, air-grasp) at seed 100 via CaP-X's frame recorder (no LLM).
+   Clips in `runs/2026-07-17-lift-repeats/clips/` (+ `~/aspire_runs/lift_repeats/clips/`);
+   render tools `scripts/render_clip.py`, `scripts/compose_sidebyside.py`.
+5. **M1 deliverable updated** — `~/sow-2026-7-30w/deliverables/M1-Deliverable-Report-DRAFT-2026-07-16.md`
+   now carries the honest variance finding + video + evidence index (@ `aa5f720`).
+   Also wrote polished status note `~/sow-2026-7-30w/aspire_original_7_17_1.md`.
+
+**Key decisions:** (a) lift-repeats used EMPTY per-repeat libraries + isolated
+dirs (i.i.d. variance instrument, not learning). (b) The ablation deliberately
+disables evosearch in BOTH arms (`--t 0`) so attribution is to the repair actor
+alone; single manipulated variable = trace access. (c) Ablation control arm must
+not leak traces at the filesystem level — the opus whole-branch review caught
+that the capx replay raw dir sat inside the actor sandbox; fixed by scrubbing it
+(`640a80b`).
+
+**Changed/created files this session:** `aspire/config.py` (+ablate_traces,
+admission_min_val), `aspire/coordinator.py` (gate + ablation wiring + t=0 guard),
+`aspire/task_context.py` (scalar outcome.txt), `aspire/replay.py` (scalar output
++ raw-dir scrub), `aspire/run.py` (CLI flags), `prompts/actor_debug_blind.md`,
+`scripts/{traces_ablation.sh,analyze_ablation.py,render_clip.py,compose_sidebyside.py,lift_repeats.sh}`,
+`scripts/__init__.py`, tests across `tests/aspire/`, plus specs/plans in
+`docs/superpowers/`, `runs/2026-07-17-lift-repeats/`. Home-dir launchers:
+`~/start_lift_repeats.sh`, `~/start_traces_ablation.sh` (not versioned).
+
+**Unresolved / watch:** ablation not yet run (credits); M1 deliverable + NearLink
+kits + SOW sign-off are user-side; standing code backlog unchanged (coordinator
+ignores `report.outcome`, replay-concurrency RMW comment-only, `FakeEngine.describe`
+score leak, `_run_dir` unused). Minor deferred from ablation review: Task-4 test
+could add an attempts.json assertion (property verified correct, just unlocked).
+
+**Next step (recommended):** when credits are approved, run the ablation
+(staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
+layer is causal. Then the skill-transfer test.
+
 ## ⚑ BUILT, PARKED (2026-07-18): traces-vs-retry ablation infra
 
 The trace-vs-retry ablation (test whether ASPIRE's per-primitive traces are
@@ -78,7 +129,7 @@ Everything needed to continue lives on the box:
 
 **Sanity check after taking over** (from `~/aspire_robot_engine/`):
 `git log --oneline -1` matches GitHub; `python3 -m pytest tests/ -q -p no:anyio`
-→ 182 passed (the `-p no:anyio` flag is required on this box).
+→ 196 passed (the `-p no:anyio` flag is required on this box).
 
 **TODO queue (user-facing, in priority order)**
 1. *User-side, blocking*: review the M1 deliverable report draft
