@@ -1,6 +1,26 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-17 — work handed over to epyc; continue from there._
+_Last updated: 2026-07-18 — work handed over to epyc; continue from there._
+
+## ⚑ BUILT, PARKED (2026-07-18): traces-vs-retry ablation infra
+
+The trace-vs-retry ablation (test whether ASPIRE's per-primitive traces are
+causal vs a plain reward-driven retry) is **fully built and merged** (branch
+`aspire_original_sim`, pushed to `aspire_demo`, commits 64bf8f5..640a80b, 196
+tests). Spec `docs/superpowers/specs/2026-07-17-traces-vs-retry-ablation-design.md`,
+plan `docs/superpowers/plans/2026-07-17-traces-vs-retry-ablation.md`. Built via
+subagent-driven development (per-task spec+quality review, opus whole-branch
+review that caught+fixed a control-arm trace-leak confound).
+- **Mechanism**: `RunConfig.ablate_traces` (CLI `--ablate-traces`) makes the
+  repair actor see a scalar `outcome.txt` + scalar `./replay` (blind prompt
+  `prompts/actor_debug_blind.md`) instead of traces; `--t 0` disables evosearch.
+  Engine-internal traces/winner bundles/extraction stay symmetric across arms.
+- **NOT YET RUN — needs API credits + GPU.** Launch: `bash ~/start_traces_ablation.sh`
+  (runs N=8/arm two arms T & C on two_arm_lift into ~/aspire_runs/traces_ablation/;
+  pidfile /tmp/traces_ablation.pid; script `scripts/traces_ablation.sh`).
+  Recommended staging: N=5/arm signal check first. Analyze with
+  `python3 scripts/analyze_ablation.py ~/aspire_runs/traces_ablation` (pre-registered
+  Mann-Whitney U + effect sizes — decision rule fixed before the run).
 
 ## ✔ DONE (2026-07-18): lift-repeats variance campaign — 5/5 complete
 
