@@ -53,25 +53,28 @@ could add an attempts.json assertion (property verified correct, just unlocked).
 (staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
 layer is causal. Then the skill-transfer test.
 
-## ⚑ BUILT, PARKED (2026-07-18): traces-vs-retry ablation infra
+## ⚑ RAN — STAGE 1 (2026-07-18): traces-vs-retry ablation, N=5/arm — UNDERPOWERED, EXTEND
 
-The trace-vs-retry ablation (test whether ASPIRE's per-primitive traces are
-causal vs a plain reward-driven retry) is **fully built and merged** (branch
-`aspire_original_sim`, pushed to `aspire_demo`, commits 64bf8f5..640a80b, 196
-tests). Spec `docs/superpowers/specs/2026-07-17-traces-vs-retry-ablation-design.md`,
-plan `docs/superpowers/plans/2026-07-17-traces-vs-retry-ablation.md`. Built via
-subagent-driven development (per-task spec+quality review, opus whole-branch
-review that caught+fixed a control-arm trace-leak confound).
-- **Mechanism**: `RunConfig.ablate_traces` (CLI `--ablate-traces`) makes the
-  repair actor see a scalar `outcome.txt` + scalar `./replay` (blind prompt
-  `prompts/actor_debug_blind.md`) instead of traces; `--t 0` disables evosearch.
-  Engine-internal traces/winner bundles/extraction stay symmetric across arms.
-- **NOT YET RUN — needs API credits + GPU.** Launch: `bash ~/start_traces_ablation.sh`
-  (runs N=8/arm two arms T & C on two_arm_lift into ~/aspire_runs/traces_ablation/;
-  pidfile /tmp/traces_ablation.pid; script `scripts/traces_ablation.sh`).
-  Recommended staging: N=5/arm signal check first. Analyze with
-  `python3 scripts/analyze_ablation.py ~/aspire_runs/traces_ablation` (pre-registered
-  Mann-Whitney U + effect sizes — decision rule fixed before the run).
+Infra fully built + merged (commits 64bf8f5..640a80b, 196 tests; spec/plan in
+`docs/superpowers/`). **Stage-1 signal check (N=5/arm) ran clean** (10/10 runs,
+no credit/crash failures). Results: `runs/2026-07-18-traces-ablation/`.
+- **Held-out val, T (traces)**: 0.05, 0.30, 0.90, 0.90, 1.00 — mean **0.63**,
+  median 0.90, P(≥0.80)=0.60.
+- **Held-out val, C (retry / --ablate-traces)**: 0.00, 0.05, 0.20, 0.60, 1.00 —
+  mean **0.37**, median 0.20, P(≥0.80)=0.20.
+- **Test**: Mann-Whitney U(T vs C)=17.0 (null mean 12.5), z=0.949, one-sided
+  p≈0.17. **Direction favors traces on every metric, but NOT significant at
+  N=5.** This is the pre-registered "ambiguous → extend" outcome (do NOT read a
+  null).
+- **NEXT: extend to N=8/arm** (6 more runs; done reps skipped): `N=8 bash
+  ~/start_traces_ablation.sh` then `python3 scripts/analyze_ablation.py
+  ~/aspire_runs/traces_ablation`. If still ambiguous, N=16. **Needs credits.**
+- Bonus: the val-score gate (f306e65) fired correctly live — every val<0.5
+  repeat admitted zero skills; t=0 confirmed (no evosearch ran, both arms).
+- Mechanism recap: `RunConfig.ablate_traces` / CLI `--ablate-traces` swaps the
+  repair actor's per-primitive traces for a scalar `outcome.txt` + scalar
+  `./replay` (blind prompt `prompts/actor_debug_blind.md`); `--t 0` off evosearch.
+  Control-arm trace-leak (replay raw dir in sandbox) closed pre-run (640a80b).
 
 ## ✔ DONE (2026-07-18): lift-repeats variance campaign — 5/5 complete
 
