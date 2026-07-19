@@ -53,24 +53,28 @@ could add an attempts.json assertion (property verified correct, just unlocked).
 (staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
 layer is causal. Then the skill-transfer test.
 
-## ⚑ RAN — STAGE 1 (2026-07-18): traces-vs-retry ablation, N=5/arm — UNDERPOWERED, EXTEND
+## ⚑ RAN — FINAL (2026-07-19): traces-vs-retry ablation, N=8/arm — SUGGESTIVE, NOT CONCLUSIVE
 
-Infra fully built + merged (commits 64bf8f5..640a80b, 196 tests; spec/plan in
-`docs/superpowers/`). **Stage-1 signal check (N=5/arm) ran clean** (10/10 runs,
-no credit/crash failures). Results: `runs/2026-07-18-traces-ablation/`.
-- **Held-out val, T (traces)**: 0.05, 0.30, 0.90, 0.90, 1.00 — mean **0.63**,
-  median 0.90, P(≥0.80)=0.60.
-- **Held-out val, C (retry / --ablate-traces)**: 0.00, 0.05, 0.20, 0.60, 1.00 —
-  mean **0.37**, median 0.20, P(≥0.80)=0.20.
-- **Test**: Mann-Whitney U(T vs C)=17.0 (null mean 12.5), z=0.949, one-sided
-  p≈0.17. **Direction favors traces on every metric, but NOT significant at
-  N=5.** This is the pre-registered "ambiguous → extend" outcome (do NOT read a
-  null).
-- **NEXT: extend to N=8/arm** (6 more runs; done reps skipped): `N=8 bash
-  ~/start_traces_ablation.sh` then `python3 scripts/analyze_ablation.py
-  ~/aspire_runs/traces_ablation`. If still ambiguous, N=16. **Needs credits.**
-- Bonus: the val-score gate (f306e65) fired correctly live — every val<0.5
-  repeat admitted zero skills; t=0 confirmed (no evosearch ran, both arms).
+Infra built + merged (64bf8f5..640a80b, 196 tests). Full ablation ran clean
+(16/16 runs across staged N=5 then +3, no credit/crash failures). Results +
+logs: `runs/2026-07-18-traces-ablation/results.json`.
+- **Held-out val, T (traces), n=8**: 0.05,0.15,0.30,0.80,0.90,0.90,0.95,1.00 —
+  mean **0.63**, median 0.85, P(≥0.80)=**0.62** (5/8).
+- **Held-out val, C (retry / --ablate-traces), n=8**: 0.00,0.05,0.10,0.20,0.35,
+  0.60,1.00,1.00 — mean **0.41**, median 0.275, P(≥0.80)=**0.25** (2/8).
+- **Primary test (pre-registered Mann-Whitney U)**: NOT significant. N=5 z=0.949
+  p≈0.17; N=8 U=39.5 z=0.791 p≈0.21 — and z did NOT grow with N (variance
+  dominates; both arms occasionally hit 1.0 and often ~0).
+- **VERDICT**: traces lead on every summary stat (mean +0.22, median +0.58,
+  ~2.5x the rate of a strong val≥0.80 program) — a consistent, moderate effect —
+  but the rank test can't separate the arms at N≤8 and isn't converging. Honest
+  read: **suggestive, not proven; not a null either.**
+- **DO NOT brute-force N** (≈30–35/arm for p<0.05, ~60–70 runs, no guarantee). If
+  a hard result is needed, redesign for power: paired seeds to cancel task
+  variance, a lower-variance task, or a pre-declared binary "strong-program"
+  proportion test. Otherwise the effect-size finding stands.
+- Bonus (validated live over 16 runs): the val-score gate (f306e65) admitted
+  zero skills on every val<0.5 repeat; t=0 confirmed (no evosearch either arm).
 - Mechanism recap: `RunConfig.ablate_traces` / CLI `--ablate-traces` swaps the
   repair actor's per-primitive traces for a scalar `outcome.txt` + scalar
   `./replay` (blind prompt `prompts/actor_debug_blind.md`); `--t 0` off evosearch.
