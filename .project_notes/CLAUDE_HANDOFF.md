@@ -53,6 +53,31 @@ could add an attempts.json assertion (property verified correct, just unlocked).
 (staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
 layer is causal. Then the skill-transfer test.
 
+## ⚑ BUILT, PARKED (2026-07-19): skill-transfer test (layer 2) — ready to run
+
+Harness for the skill-transfer test **fully built + merged** (branch
+`aspire_original_sim`, pushed to `aspire_demo`, commits ec09ae7..f9ce596, 199
+tests). Spec `docs/superpowers/specs/2026-07-19-skill-transfer-test-design.md`,
+plan `docs/superpowers/plans/2026-07-19-skill-transfer-test.md`. Built via
+subagent-driven development (per-task review + opus whole-branch review that
+confirmed validity and caught a rep-dir zero-pad footgun, fixed f9ce596). NO
+`aspire/` package changes — pure fixture + analysis wrapper + launcher.
+- **Question**: does seeding a lift run's library with HANDOVER-provenance skills
+  beat an empty library? Validates ASPIRE layer 2 (skill accumulation/transfer),
+  the biggest untested piece — every prior campaign used empty libraries.
+- **Design**: two arms, single variable = library contents. Arm S seeds each
+  lift repeat from the committed 2-skill fixture
+  `runs/2026-07-19-skill-transfer/seed_library/` (handover-provenance ONLY;
+  lift-provenance skills excluded → genuine cross-task); arm E empty. Both `--t 0`,
+  `--s-val 100-119`, pristine baseline, isolated dirs. Seeded skills reach the
+  actor via `relevant_skills` load_all fallback (lift fails silently → no error
+  keywords → load_all), verified in review.
+- **NOT YET RUN — needs API credits + GPU.** Launch: `N=5 bash ~/start_skill_transfer.sh`
+  (staged N=5/arm signal check first, extend to N=8; script `scripts/skill_transfer.sh`;
+  pidfile /tmp/skill_transfer.pid; state ~/aspire_runs/skill_transfer/{S,E}/).
+  Analyze: `python3 scripts/analyze_skill_transfer.py ~/aspire_runs/skill_transfer`
+  (reuses the ablation's Mann-Whitney U + effect sizes; arms S vs E).
+
 ## ⚑ RAN — FINAL (2026-07-19): traces-vs-retry ablation, N=8/arm — SUGGESTIVE, NOT CONCLUSIVE
 
 Infra built + merged (64bf8f5..640a80b, 196 tests). Full ablation ran clean
