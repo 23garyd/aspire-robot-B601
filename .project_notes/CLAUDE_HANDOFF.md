@@ -53,6 +53,32 @@ could add an attempts.json assertion (property verified correct, just unlocked).
 (staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
 layer is causal. Then the skill-transfer test.
 
+## ⚑ RAN (2026-07-20): curriculum-accumulation (layer 2 as intended), N=5/arm — NO BENEFIT (thin library)
+
+Reproduces ASPIRE layer 2 in the paper's curriculum mode: accumulate a shared
+library over the 4 non-lift tasks, then warm(S=accumulated)/cold(E=empty) on
+lift. Built + merged (commits 28f6f46..93514a9, 201 tests; spec/plan in
+`docs/superpowers/`), ran clean. Results: `runs/2026-07-20-curriculum/results/results.json`.
+- **Phase 1 accumulated only 1 skill** — `seat-at-resting-height-not-target-center`
+  (from nut_assembly). Easy tasks pass at baseline (no repair→no skills);
+  handover repaired (val 0.95) but admitted nothing this run. The 1 skill is
+  nut-assembly-specific, NOT lift-relevant.
+- **Phase 2**: warm (S) 0.0,0.0,0.10,0.85,0.90 mean **0.37**; cold (E)
+  0.45,0.85,0.85,1.0,1.0 mean **0.83**. Mann-Whitney U=5.0, z=-1.596
+  (cold>warm, one-sided p≈0.055). Warm scored LOWER on every metric.
+- **VERDICT: curriculum accumulation did NOT help lift** — but this is NOT a
+  clean layer-2 test: the suite only accumulated 1 irrelevant skill, so the warm
+  arm carried a single useless prior. Confounded by library thinness/irrelevance.
+  Mechanism verified live (skill injected into all 5 warm skills.md; cold empty).
+- **Layer-2 story across experiments**: hand-seeded transfer = null; faithful
+  curriculum = no benefit (thin). Consistent — cross-task skill accumulation
+  shows no value on this suite; ASPIRE's demonstrated power is per-run
+  trace-guided repair. A fair layer-2 test needs a richer curriculum of
+  failing-solvable lift-relevant tasks (our 5-task suite lacks it).
+- Harness: `scripts/curriculum.sh` (orch), `scripts/curriculum_accumulate.sh`
+  (phase 1), reuses `skill_transfer.sh` (SEED override) + `analyze_skill_transfer.py`.
+  Launch: `bash ~/start_curriculum.sh`.
+
 ## ⚑ RAN — STAGE 1 (2026-07-20): skill-transfer test (layer 2), N=5/arm — NEGATIVE/NULL
 
 Harness built + merged (ec09ae7..f9ce596, spec/plan in `docs/superpowers/`).
