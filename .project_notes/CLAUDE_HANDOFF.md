@@ -53,30 +53,34 @@ could add an attempts.json assertion (property verified correct, just unlocked).
 (staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
 layer is causal. Then the skill-transfer test.
 
-## ⚑ BUILT, PARKED (2026-07-19): skill-transfer test (layer 2) — ready to run
+## ⚑ RAN — STAGE 1 (2026-07-20): skill-transfer test (layer 2), N=5/arm — NEGATIVE/NULL
 
-Harness for the skill-transfer test **fully built + merged** (branch
-`aspire_original_sim`, pushed to `aspire_demo`, commits ec09ae7..f9ce596, 199
-tests). Spec `docs/superpowers/specs/2026-07-19-skill-transfer-test-design.md`,
-plan `docs/superpowers/plans/2026-07-19-skill-transfer-test.md`. Built via
-subagent-driven development (per-task review + opus whole-branch review that
-confirmed validity and caught a rep-dir zero-pad footgun, fixed f9ce596). NO
-`aspire/` package changes — pure fixture + analysis wrapper + launcher.
-- **Question**: does seeding a lift run's library with HANDOVER-provenance skills
-  beat an empty library? Validates ASPIRE layer 2 (skill accumulation/transfer),
-  the biggest untested piece — every prior campaign used empty libraries.
-- **Design**: two arms, single variable = library contents. Arm S seeds each
-  lift repeat from the committed 2-skill fixture
-  `runs/2026-07-19-skill-transfer/seed_library/` (handover-provenance ONLY;
-  lift-provenance skills excluded → genuine cross-task); arm E empty. Both `--t 0`,
-  `--s-val 100-119`, pristine baseline, isolated dirs. Seeded skills reach the
-  actor via `relevant_skills` load_all fallback (lift fails silently → no error
-  keywords → load_all), verified in review.
-- **NOT YET RUN — needs API credits + GPU.** Launch: `N=5 bash ~/start_skill_transfer.sh`
-  (staged N=5/arm signal check first, extend to N=8; script `scripts/skill_transfer.sh`;
-  pidfile /tmp/skill_transfer.pid; state ~/aspire_runs/skill_transfer/{S,E}/).
-  Analyze: `python3 scripts/analyze_skill_transfer.py ~/aspire_runs/skill_transfer`
-  (reuses the ablation's Mann-Whitney U + effect sizes; arms S vs E).
+Harness built + merged (ec09ae7..f9ce596, spec/plan in `docs/superpowers/`).
+**Stage-1 (N=5/arm) ran clean** (10/10, no failures). Results +
+logs: `runs/2026-07-19-skill-transfer/results/results.json`.
+- **Held-out val, S (seeded w/ 2 handover skills)**: 0.0, 0.25, 0.35, 0.70, 0.90
+  — mean **0.44**, median 0.35, P(≥0.80)=0.20.
+- **Held-out val, E (empty library)**: 0.0, 0.50, 0.75, 0.90, 1.00 — mean
+  **0.63**, median 0.75, P(≥0.80)=0.40.
+- **Mann-Whitney U(S vs E)=8.0, z=-0.946** — the SEEDED arm ranks LOWER. No
+  metric favors seeding; the point estimate is a (non-significant) NEGATIVE
+  transfer. Not significant either way (same variance wall as the ablation).
+- **VERDICT: no evidence ASPIRE's skill layer transfers across these tasks** — a
+  legitimate negative for layer 2. NOT a plumbing failure: the transfer channel
+  fired (verified live — all 5 S reps' skills.md contained both handover skills;
+  E's were `(none)`).
+- **Likely why**: both arms independently ADMITTED grasp-orientation skills during
+  their own runs — the actor re-derives the needed geometry from THIS run's
+  traces, so pre-seeded cross-task skills add little. Coheres with the ablation:
+  the repair power lives in per-run trace-guided repair, not (yet demonstrably)
+  in cross-task skill accumulation.
+- **Recommend**: do NOT brute-force N (a null/negative is unlikely to flip). If
+  pursued, redesign (positive control with a genuinely-missing-info skill +
+  a target the actor can't solve from its own traces; paired seeds). Report the
+  honest negative.
+- Mechanism recap: seed fixture `runs/2026-07-19-skill-transfer/seed_library/`
+  (handover-only); launcher `scripts/skill_transfer.sh`; analysis
+  `scripts/analyze_skill_transfer.py`.
 
 ## ⚑ RAN — FINAL (2026-07-19): traces-vs-retry ablation, N=8/arm — SUGGESTIVE, NOT CONCLUSIVE
 
