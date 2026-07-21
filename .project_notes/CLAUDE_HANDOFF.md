@@ -1,6 +1,62 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-21 — B601 M3c (real cube-lift) BUILT + pushed; M3a/M3b/M3c all await on-bench live runs (hardware present). Next milestone: M3d (real ASPIRE repair loop)._
+_Last updated: 2026-07-21 — **B601 SOFTWARE TRACK COMPLETE** (M3a–M3d built, reviewed, pushed). Only on-bench live runs (hardware + credits) remain. @ `4481b6b`, `aspire_demo`._
+
+## ▣ B601 TRACK STATUS (2026-07-21) — all software milestones DONE + CI-proven
+
+Branch `aspire_original_sim` @ `4481b6b`, pushed to `aspire_demo`.
+`python3 -m pytest tests/ -q -p no:anyio` → **299 passed**. No hardware/ROS 2/credits/LLM
+in CI. Every milestone: spec → plan → subagent-driven build → per-task 2-stage review →
+opus whole-branch review → push.
+
+| Milestone | What it built (all CI-proven) | On-bench live step remaining |
+|---|---|---|
+| **M3a** first light | transport seam, joint+gripper limit clamp, `ros_transport` (ROS2, rclpy deferred), `b601_real_first_light` bounded runner + `move_to_look_pose` gripper-hold | gentle bounded first move on the arm |
+| **M3b** perception | `transforms`, ArUco `perception`, ChArUco `hand_eye` calibration (PARK), `d405`/`tf_pose` seams, calibrate + perceive scripts | print board/marker, calibrate → `hand_eye.json`, perceive-vs-measured |
+| **M3c** cube-lift | `MotionBackend` seam (Fake/Real vendor-IK), `grasp` evaluators, `RealCubeLiftEnv` behind M2's namespace, `b601_execute` real-env selection | finalize `RealMotionBackend.connect()` + `cube_lift_real.json`; real lift |
+| **M3d** repair loop | failing grasp-in-air baseline + deterministic Stage-1 repair proof (real capx engine + scripted actor → validated) | `aspire.run` capstone: real ClaudeCodeActor repairs on the arm |
+
+**The whole real-hardware ASPIRE stack is built + CI-proven; only the live runs need the
+bench (+ credits for M3d).** Each milestone's review loop caught a real bug (M3a joint +
+gripper home-jump hazards; M3b TSAI→PARK calibration breakdown + convention doc trap; M3c
+gripper-clamp breadcrumb; M3d capstone-honesty wording) — all fixed pre-push.
+
+## ▣ SESSION SUMMARY (2026-07-21d) — B601 Milestone 3d: the real ASPIRE repair loop (capstone)
+
+**Status:** commits `085faba..4481b6b`. Spec
+`docs/superpowers/specs/2026-07-21-b601-m3d-real-repair-loop-design.md`, plan
+`docs/superpowers/plans/2026-07-21-b601-m3d-real-repair-loop.md`. **No `aspire/`,
+`robot_b601/`, or `scripts/` changes** — the coordinator/actor/engine/trace pipeline is
+reused verbatim.
+
+**What M3d shipped (3 tasks):**
+- **`runs/2026-07-21-b601-real-cube-lift/baseline_grasp_air.py`** — the FAILING baseline:
+  closes the gripper at `cube.z+0.10` (10 cm above), never descends → grasps air → score 0.
+  Differs from the correct M3c `baseline_lift.py` by exactly one line (the missing descend).
+- **`tests/b601/test_baseline_grasp_air.py`** — scores 0 + the failure is trace-diagnosable
+  (`set_gripper grasped=False` + a prior `get_cube_pose` in the traces).
+- **`tests/b601/test_repair_loop.py`** — the capstone proof: in-process `TaskPipeline` with
+  the REAL `AuditedEngine(CapxEngine(b601_execute --config-path cube_lift_fake.json))` + a
+  scripted `FakeActor` whose fix is `baseline_lift.py`. Failing baseline `dbg_score 0 <
+  theta 0.5` → **Stage-1 runs** (`actor.debug_calls != []`) → fix re-scores 1.0 → `validated`
+  (`dbg_score==val_score==1.0`). Proves the WIRING, not LLM reasoning (docstring says so).
+- **`runs/2026-07-21-b601-real-cube-lift/cube_lift_real.json`** — on-bench `backend:real`
+  template (referenced by no CI path; `_note` marks fields to finalize on-bench).
+
+**Final review (opus): CLEAN, merge-ready.** Honest capstone (proves wiring, scores earned
+on the real engine, no false-pass path, CI/live split disclosed — no credits/hw/LLM in CI).
+
+**REMAINING M3d step (operator, on-bench + credits):** after M3b calibration + M3c real
+backend finalized + arm up, put `baseline_grasp_air.py` as a task's `code.py` and run
+`python -m aspire.run --task-dir <t> --engine capx --capx-cmd "python scripts/b601_execute.py
+--config-path runs/2026-07-21-b601-real-cube-lift/cube_lift_real.json" --library <lib>
+--s-dbg 0 --s-val 1` → the real `ClaudeCodeActor` reads the failing traces, writes the
+descend fix, re-runs on the arm → `validated`. The full ASPIRE reproduction on real hardware.
+
+**Next:** the four on-bench live runs (M3a first-light → M3b calibrate → M3c lift → M3d
+repair). All software is built + CI-proven; no further code is required to attempt them.
+
+---
 
 ## ▣ SESSION SUMMARY (2026-07-21c) — B601 Milestone 3c: real cube-lift on hardware
 
