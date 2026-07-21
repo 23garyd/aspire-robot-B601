@@ -64,6 +64,26 @@ USD doesn't exist yet (roadmap "in progress") and RS has the completed
 Isaac+ROS2/MoveIt2 stack). Sim = Isaac; perception (D405/pyrealsense2) deferred to
 real hardware; sim stays privileged.
 
+**Milestone 2 (cube-lift task + full ASPIRE loop) — BUILT + merged** (commits
+83b7504..3fb11e3, 221 tests; opus whole-branch review READY TO MERGE). The B601 is
+now a real ASPIRE engine: `scripts/b601_execute.py` honors the `capx_execute`
+contract, so `aspire.run --engine capx --capx-cmd "python scripts/b601_execute.py …"`
+drives the WHOLE reproduction pipeline on the B601 — NO `aspire/` changes.
+- `robot_b601/task.py`: `FakeCubeLiftEnv` (deterministic, ungameable reward:
+  reach→grasp-within-tol→lift = success; no-op/wrong-pose = fail) + `IsaacCubeLiftEnv`
+  (intentional live-only stub; on-box TODOs: cube spawn, ground-truth read, IK
+  routing, success = prim world-z). Perception privileged (`get_cube_pose`), D405 in M3.
+- **Headline test** (`tests/b601/test_pipeline_integration.py`): real
+  `aspire.run --engine capx` through `b601_execute` drives a passing baseline to
+  `validated`/`val_score 1.0` with **no Isaac and no LLM** (passing baseline skips the
+  repair actor). Fixtures: `runs/2026-07-20-b601-cube-lift/` (cube_lift.yaml,
+  baseline_correct.py).
+- Spec/plan: `docs/superpowers/{specs,plans}/2026-07-20-b601-m2-cube-lift*.md`.
+- **NEXT (on-box / credits):** (1) finalize `IsaacCubeLiftEnv` in Isaac (RS USD, cube
+  USD, physics grasp/lift) — the live cube-lift; (2) run the actual ASPIRE repair loop
+  on a FAILING B601 baseline (LLM) → first self-improvement result on the new robot;
+  (3) M3: real B601-RS over ROS2/CAN + D405.
+
 **Milestone 1 (first light) — BUILT + merged** (commits 655be06..93b38d0, 212
 tests; opus whole-branch review READY TO MERGE). New `robot_b601/` module on
 `aspire_original_sim`, reusing `aspire/schemas.py`:
