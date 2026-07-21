@@ -1,6 +1,75 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-21 — B601 M3b (D405 perception + hand-eye calibration) BUILT + pushed; M3a + M3b both await on-bench live runs (hardware present)._
+_Last updated: 2026-07-21 — B601 M3c (real cube-lift) BUILT + pushed; M3a/M3b/M3c all await on-bench live runs (hardware present). Next milestone: M3d (real ASPIRE repair loop)._
+
+## ▣ SESSION SUMMARY (2026-07-21c) — B601 Milestone 3c: real cube-lift on hardware
+
+**Status:** Branch `aspire_original_sim` @ `57d0fcd`, pushed to `aspire_demo`
+(`ad8a3c9..57d0fcd`). `python3 -m pytest tests/ -q -p no:anyio` → **296 passed**.
+Deterministic, no hardware/ROS 2/credits/LLM in CI. Spec
+`docs/superpowers/specs/2026-07-21-b601-m3c-real-cube-lift-design.md`, plan
+`docs/superpowers/plans/2026-07-21-b601-m3c-real-cube-lift.md`.
+
+**What M3c shipped (spec→plan→subagent-driven build, 6 tasks + 2 final-review fixes):**
+- **`robot_b601/limits.py` (extended)** — `GripperLimits` + `clamp_gripper` +
+  `load_gripper_limits`: **closes the deferred M3a/M3b gripper-clamp** (set_gripper can
+  no longer over-travel/crush). Existing joint clamp untouched.
+- **`robot_b601/grasp.py`** — pure proprioceptive `grasp_detected` (gripper stalls open on
+  the object) / `lifted` (EE height) / `cube_lift_success` (both).
+- **`robot_b601/motion.py`** — the `MotionBackend` seam: `FakeMotionBackend` (CI model
+  with a grasp-stall so gripper feedback is realistic) + `RealMotionBackend` (on-bench
+  stub: **vendor MoveIt2/IK over ROS 2**, rclpy deferred, methods raise before connect()).
+- **`robot_b601/task.py` (+RealCubeLiftEnv)** — composes MotionBackend + a perception
+  `get_cube_pose` source + grasp/lift eval, behind M2's EXACT primitive namespace
+  (`get_cube_pose`/`move_to_pose`/`set_gripper`/…). `success = grasp-detected ∧ EE-lifted`
+  (proprioceptive; perception localizes for the reach only). `reset(seed)` re-homes the
+  backend + logs the seed (does NOT move the physical cube). Plus `FakeCubePerception` +
+  `build_real_cube_lift_env(cfg)` factory (`backend:fake`→CI / `backend:real`→on-bench).
+  `FakeCubeLiftEnv` unchanged.
+- **`scripts/b601_execute.py`** — `_build_env` selects `RealCubeLiftEnv` for a real
+  `--config-path`, `FakeCubeLiftEnv` for `--selftest`/no-config; supersedes the
+  `IsaacCubeLiftEnv` stub. capx contract + `aspire/` UNCHANGED.
+- **`runs/2026-07-21-b601-real-cube-lift/{cube_lift_fake.json, baseline_lift.py}`** +
+  the deterministic full-pipeline test: a correct baseline drives `RealCubeLiftEnv`
+  (fake backend) through `aspire.run` to `validated`/`val 1.0`/**no LLM** — proven in CI
+  with no arm or credits (a passing baseline skips the actor).
+
+**IK decision:** vendor MoveIt2/IK over ROS 2 (reuses the arm's tested motion stack;
+sits behind the MotionBackend seam so task logic stays CI-tested). Success is
+**proprioceptive** (grasp-stall + EE height from TF) because the wrist D405 is occluded
+once the cube is grasped.
+
+**Final whole-branch review (opus): CLEAN, merge-ready, no Critical/Important.**
+Adversarially confirmed `success()` is gated on BOTH grasp (at z≈0.02) AND lift (>0.10) —
+~8 cm of required lift, so a non-lifting program cannot score 1.0; the pipeline test
+genuinely drives RealCubeLiftEnv (not a Fake fallback); the gripper clamp is safe on
+every reachable path; deferred imports proven (ran rclpy-free). 2 Minors fixed pre-push
+(RealMotionBackend keeps the clamped gripper target + on-bench breadcrumb; the selftest
+test now asserts score==1.0).
+
+**REMAINING M3c step (operator, on-bench — hardware present):**
+1. Complete M3b calibration first (`hand_eye.json`).
+2. Finalize `RealMotionBackend.connect()`/methods against the vendor MoveIt2/IK service +
+   gripper controller + TF frames (the on-bench TODOs; set `_connected=True` at the end).
+3. Author `runs/2026-07-21-b601-real-cube-lift/cube_lift_real.json` = the fake config with
+   `"backend":"real"` + measured `grip_lo`/`grip_hi`/`min_object_open`/`marker_size` +
+   `base_frame`/`gripper_frame` (vs `rebotarm_bringup` URDF).
+4. `ros2 launch rebotarm_bringup …` + MoveIt2 + monitor; D405 connected; e-stop; place
+   the marked cube; then `python3 scripts/b601_execute.py --program
+   runs/2026-07-21-b601-real-cube-lift/baseline_lift.py --seeds 0 --out-dir /tmp/m3c
+   --config-path runs/2026-07-21-b601-real-cube-lift/cube_lift_real.json` → the arm
+   perceives, reaches (vendor IK), grasps, lifts. Honest live validation like M1's golden trace.
+
+**Open Minors (final-triage, harmless):** `RealMotionBackend._connected` never set True
+(on-bench connect() finalizer must add it); `FakeMotionBackend.move_to_joints` inert
+no-op (RealCubeLiftEnv uses move_to_pose). Ledger: `.superpowers/sdd/progress.md`.
+
+**Next milestone: M3d** — the real ASPIRE repair loop on hardware: a FAILING baseline →
+LLM repair (Stage-1 actor) → re-run on the real cube-lift → validated. The one piece
+that still needs credits + the arm together; everything below it (perception, IK reach,
+grasp/lift, the capx engine, the pipeline) is now built and CI-proven.
+
+---
 
 ## ▣ SESSION SUMMARY (2026-07-21b) — B601 Milestone 3b: D405 perception + eye-in-hand hand-eye calibration
 
