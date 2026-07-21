@@ -1,6 +1,67 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-18 — work handed over to epyc; continue from there._
+_Last updated: 2026-07-21 — B601 M3a (real-hardware first light) BUILT + pushed; on-bench live run is the only remaining M3a step._
+
+## ▣ SESSION SUMMARY (2026-07-21) — B601 Milestone 3a: real-hardware "first light"
+
+**Status:** Branch `aspire_original_sim` @ `1bf724b`, pushed to `aspire_demo`
+(`d6b28de..1bf724b`). `python3 -m pytest tests/ -q -p no:anyio` → **240 passed**.
+No campaign running; no credits/LLM needed (M3a is deterministic, ROS 2-free in CI).
+
+**What M3a shipped (spec→plan→subagent-driven build, 4 tasks + 2 review-caught safety fixes):**
+- **`robot_b601/limits.py`** — joint-limit safety clamp (`clamp_to_limits`,
+  `load_limits`, `DEFAULT_LIMITS`, `JointLimits`) with **fail-loud validation**
+  (rejects wrong-length / inverted `lo>hi` configs; clamp raises on length
+  mismatch instead of silent zip-truncation). Config `robot_b601/b601_rs_limits.json`
+  (conservative ±2.6 defaults — **finalize from B601-RS URDF on-bench**).
+- **`robot_b601/ros_transport.py`** — `B601RosTransport` implementing the M1
+  `B601Transport` seam over ROS 2. `rclpy`/`sensor_msgs` **deferred-imported**
+  (module + pure helpers import/test with NO ROS 2); **clamp-before-wire** in
+  `publish`; publish-before-connect raises.
+- **`scripts/b601_real_first_light.py`** — bounded first-light runner:
+  `plan_waypoints` (home→home±delta→home), `run()` reads the **REAL current pose**
+  as home (bounded clock-poll, **fail-loud RuntimeError on timeout** — never a
+  silent zero home), holds the **real gripper** (no motion), `--dry-run` previews
+  clamped waypoints with no ROS 2 / no motion. `--delta-max>0.3` warns.
+- M1 `B601Node`/`B601Engine`/`RealClock` and all of `aspire/` reused UNCHANGED.
+
+**Two safety bugs the review loop caught & fixed (both the same hazard — "jump
+from unknown pose to a hardcoded target"):**
+1. **Joints** (`2ad5d0e`): `run()` read `latest()` before `/joint_states` arrived
+   → `None` → silent `[0.0]*6` home → arm would jump to zero pose. Fixed: bounded
+   clock-poll for real state, RAISE on timeout.
+2. **Gripper** (`1bf724b`, opus final-review catch): every wire command carried a
+   hardcoded gripper `0.0` (real `state.gripper_position` discarded) → gripper
+   would slam from its true open position to 0.0. Fixed: `node.set_gripper(real)`
+   → gripper HELD (verified 505/505 commands @ real value, none 0.0).
+
+**Final whole-branch review (opus):** joint safety path SOUND — both independent
+bounds enforced on every command (small-delta-from-real-home + absolute clamp),
+clamp-before-wire, no mid-motion crash-to-wire (clamp raises with nothing on the
+wire), cross-task types consistent, tests honest. Only the gripper hole above;
+now fixed. Branch declared bench-safe end-to-end.
+
+**REMAINING M3a step (operator, on-bench — hardware present):**
+1. Finalize `robot_b601/b601_rs_limits.json` from the B601-RS URDF (`rebotarm_bringup`).
+2. `source` ROS 2; `ros2 launch rebotarm_bringup …` (controller) +
+   `ros2 run rebotarm_monitor_ros2 …` (safe-park). E-stop in reach; workspace clear.
+3. `python3 scripts/b601_real_first_light.py --dry-run` — review clamped waypoints.
+4. `python3 scripts/b601_real_first_light.py --limits robot_b601/b601_rs_limits.json`
+   — arm gently runs the bounded waypoints; confirm `/joint_states` convergence +
+   recorded trace (honest live validation, like M1's golden trace).
+
+**On-bench gates before trusting a live command (from reviews — NOT yet confirmed
+against real `rebotarm_bringup`):** the command **message type** (`sensor_msgs/JointState`
+is a placeholder — real arm controllers often want `trajectory_msgs/JointTrajectory`
+or `Float64MultiArray`) + command **topic**; `latest()` joint **ordering** (key off
+`msg.name`, not positional `p[:6]`); **gripper clamp** deferred to M3c (holding-at-current
+needs none). Ledger detail: `.superpowers/sdd/progress.md`.
+
+**Next milestones:** M3b (D405 perception + hand-eye calibration — known vendor gap),
+M3c (real cube-lift + camera reward + gripper limits), M3d (real ASPIRE repair loop).
+
+---
+
 
 ## ▣ SESSION SUMMARY (2026-07-18) — compacted
 
