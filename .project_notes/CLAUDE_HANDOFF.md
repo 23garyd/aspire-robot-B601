@@ -53,6 +53,36 @@ could add an attempts.json assertion (property verified correct, just unlocked).
 (staged N=5/arm first) — it's the experiment that would prove ASPIRE's trace
 layer is causal. Then the skill-transfer test.
 
+## ⚑ NEW DIRECTION (2026-07-20): move to the reBot B601 arm (RS) — M1 "first light" BUILT
+
+Platform pivot: the paper reproduction stays on CaP-X/Robosuite (done); the
+go-forward real robot is the **reBot B601 arm + Intel RealSense D405**
+(Seeed-Projects/reBot-DevArm). A2 track is shelved. Decisions locked:
+**RS variant end-to-end** (RS USD `usd/RS-rebot-dev-arm/00-arm-rs_asm-v3.usda` in
+Isaac sim + RS as the real-hardware target — chosen over DM because the DM Isaac
+USD doesn't exist yet (roadmap "in progress") and RS has the completed
+Isaac+ROS2/MoveIt2 stack). Sim = Isaac; perception (D405/pyrealsense2) deferred to
+real hardware; sim stays privileged.
+
+**Milestone 1 (first light) — BUILT + merged** (commits 655be06..93b38d0, 212
+tests; opus whole-branch review READY TO MERGE). New `robot_b601/` module on
+`aspire_original_sim`, reusing `aspire/schemas.py`:
+- `B601Transport` seam (publish/latest) with deterministic `FakeB601Transport`
+  (unit-tested, no Isaac) + live `B601IsaacUdpTransport` (two-way UDP: `:5005`
+  cmd / `:5006` state — the M1 crux, since the vendor sim is one-way).
+- `B601Node` facade (re-stream setpoint, poll-to-converge), `B601Engine` (traced
+  primitives → `ExecuteResult`), `scripts/b601_first_light.py` (`--selftest` = Fake,
+  score 1.0/6 primitives) + `scripts/b601_isaac_bridge.py` (Isaac-side; INTENTIONAL
+  live-only stub — finalized on-box against the installed Isaac ArticulationView
+  API; TODOs mark gripper wiring + DOF slicing).
+- Spec `docs/superpowers/specs/2026-07-20-b601-isaac-backend-m1-design.md`; plan
+  `docs/superpowers/plans/2026-07-20-b601-isaac-backend-m1.md`.
+- **NEXT — on-box:** run `b601_isaac_bridge.py` in Isaac (ISAACSIM_ROOT, RS USD) +
+  `b601_first_light.py` (no --selftest) → verify the arm executes the waypoints and
+  the trace records real convergence (the golden-trace-style live step). Then
+  **Milestone 2** (a B601 manipulation task + privileged reward → full ASPIRE loop
+  on the new robot) and **Milestone 3** (real B601-RS over ROS2/CAN + D405).
+
 ## ⚑ RAN (2026-07-20): curriculum-accumulation (layer 2 as intended), N=5/arm — NO BENEFIT (thin library)
 
 Reproduces ASPIRE layer 2 in the paper's curriculum mode: accumulate a shared
