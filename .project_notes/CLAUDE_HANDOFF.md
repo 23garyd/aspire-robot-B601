@@ -1,6 +1,69 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-21 — B601 M3a (real-hardware first light) BUILT + pushed; on-bench live run is the only remaining M3a step._
+_Last updated: 2026-07-21 — B601 M3b (D405 perception + hand-eye calibration) BUILT + pushed; M3a + M3b both await on-bench live runs (hardware present)._
+
+## ▣ SESSION SUMMARY (2026-07-21b) — B601 Milestone 3b: D405 perception + eye-in-hand hand-eye calibration
+
+**Status:** Branch `aspire_original_sim` @ `f451cdc`, pushed to `aspire_demo`
+(`a0c97c1..f451cdc`). `python3 -m pytest tests/ -q -p no:anyio` → **270 passed**.
+Deterministic, no hardware/ROS 2/credits in CI (numpy/cv2/scipy only; pyrealsense2/
+rclpy deferred). Spec `docs/superpowers/specs/2026-07-21-b601-m3b-perception-handeye-design.md`,
+plan `docs/superpowers/plans/2026-07-21-b601-m3b-perception-handeye.md`.
+
+**What M3b shipped (spec→plan→subagent-driven build, 8 tasks + 3 review-caught fixes):**
+- **`robot_b601/transforms.py`** — numpy/scipy 4×4 core; `cube_base_pose(T_cube_cam,
+  T_cam_gripper, T_gripper_base)` composes to the cube expressed in base. Convention is
+  OBJECT-FIRST (`T_x_y` = x expressed in y); keep the compose order.
+- **`robot_b601/perception.py`** — `detect_cube_pose` (ArUco DICT_4X4_50, cube marker
+  id 7 → pose in camera frame) + `RealPerceptionSource` (capture→detect→compose into
+  arm frame; raises if no marker). Duck-typed over camera/tf (no heavy imports).
+- **`robot_b601/hand_eye.py`** — `detect_charuco_pose` (5×7 ChArUco), `solve_hand_eye`
+  (`cv2.calibrateHandEye`, **default PARK** — TSAI breaks near 180° relative rotation),
+  `calibration_residual`, **fail-loud** `load/save_extrinsic` (rejects non-4×4 /
+  non-orthonormal), `hand_eye.json` (identity default = uncalibrated).
+- **`robot_b601/d405.py`** (`D405Camera`/`FakeD405`, pyrealsense2 deferred),
+  **`robot_b601/tf_pose.py`** (`TfGripperPose`/`FakeGripperPose`, rclpy/tf2 deferred).
+- **`robot_b601/look_pose.py`** — shared `wait_for_state` + `move_to_look_pose` (holds
+  the REAL gripper via `set_gripper`, fail-loud if no `/joint_states`); used by BOTH
+  live scripts so neither snaps the gripper to a hardcoded 0.0.
+- **`scripts/b601_perceive_cube.py`** (validation: arm-frame pose, `--compare` vs
+  ruler-measured) + **`scripts/b601_hand_eye_calibrate.py`** (the vendor-gap routine:
+  look-pose sweep → solve → write `hand_eye.json` + residual). Both `--dry-run` CI-safe.
+- M1/M2/M3a stack and all of `aspire/` reused UNCHANGED.
+
+**Three defects the review loop caught & fixed:**
+1. **Calibration solver (`f03c987`):** plan pinned `CALIB_HAND_EYE_TSAI`, which breaks
+   near 180° relative rotation (fixed-seed test hit 173.8°). Diagnosed (PARK/HORAUD/
+   ANDREFF recover the same data to ~1e-15) → changed default to **PARK**; recovers a
+   known extrinsic to ~4e-16 at the untouched 1e-3 tolerance.
+2. **Gripper hazard (`ec3e225`), final-review class:** perceive-cube live path called
+   raw `move_to_joints` → gripper would snap to 0.0. Fixed by the shared `look_pose.py`
+   helper (real-gripper hold + fail-loud); calibrate reuses it. Test verified non-vacuous.
+3. **Convention doc trap (`f451cdc`, opus final review):** `transforms.py` docstring
+   stated the frame convention backwards vs the (correct, test-locked) usage → reworded
+   object-first so a future editor can't invert the math.
+
+**Final whole-branch review (opus):** CLEAN, merge-ready, no Critical/Important —
+traced the full frame chain (`base_from_gripper @ gripper_from_cam @ cam_from_cube =
+base_from_cube`, no mismatch), confirmed the honest calibration proof, both live paths
+gripper-safe + pose-clamped, both `--dry-run` deferrals proven with pyrealsense2 absent.
+
+**REMAINING M3b step (operator, on-bench — hardware present):**
+1. Print a DICT_4X4_50 ChArUco board (5×7, 30 mm square / 22 mm marker), mount rigidly
+   in view of the table; stick a DICT_4X4_50 marker id 7 on the cube (measure its side).
+2. Confirm TF frame names (`base_link` ↔ tool/gripper) vs `rebotarm_bringup` URDF.
+3. `ros2 launch rebotarm_bringup …` + monitor; connect D405; e-stop in reach.
+4. `b601_hand_eye_calibrate.py --dry-run` → live run → check residual (few mm) → writes
+   `hand_eye.json`. Then `b601_perceive_cube.py --marker-size <m> --compare <X Y Z>`
+   vs a measured cube → report perception error. Honest live validation like M1's golden trace.
+
+**Open Minor (final-triage, harmless):** `MAX_CALIB_DELTA` defined but not code-enforced
+(deltas hardcoded ≤0.2 + limit-clamped, test-guarded). Ledger: `.superpowers/sdd/progress.md`.
+
+**Next milestones:** M3c (real cube-lift: real `get_cube_pose` in the task loop + IK
+reach + grasp + camera reward + gripper limits), M3d (real ASPIRE repair loop on hardware).
+
+---
 
 ## ▣ SESSION SUMMARY (2026-07-21) — B601 Milestone 3a: real-hardware "first light"
 
