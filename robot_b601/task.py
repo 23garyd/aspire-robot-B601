@@ -217,7 +217,12 @@ def build_real_cube_lift_env(cfg: dict):
     from robot_b601.hand_eye import load_extrinsic
     motion = RealMotionBackend(gripper_limits=glim,
                                base_frame=cfg.get("base_frame", "base_link"),
-                               gripper_frame=cfg.get("gripper_frame", "tool0"))
+                               gripper_frame=cfg.get("gripper_frame", "gripper_end"),
+                               namespace=cfg.get("namespace", "rebotarm"),
+                               move_duration_s=float(cfg.get("move_duration_s", 3.0)),
+                               gripper_open_motor=float(cfg.get("gripper_open_motor", 5.0)),
+                               gripper_close_motor=float(cfg.get("gripper_close_motor", 0.0)),
+                               gripper_max_width=float(cfg.get("gripper_max_width", 0.09)))
     motion.connect()
     camera = D405Camera(); camera.connect()
     tf = TfGripperPose(base_frame=cfg.get("base_frame", "base_link"),

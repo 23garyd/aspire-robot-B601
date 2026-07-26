@@ -1,6 +1,6 @@
 {
   "backend": "real",
-  "lift_threshold": 0.10,
+  "lift_threshold": 0.1,
   "grasp_tol": 0.03,
   "min_object_open": 0.01,
   "closed_ref": 0.0,
@@ -8,7 +8,12 @@
   "grip_hi": 0.08,
   "marker_size": 0.03,
   "base_frame": "base_link",
-  "gripper_frame": "tool0",
+  "gripper_frame": "gripper_end",
   "extrinsic": "robot_b601/hand_eye.json",
-  "_note": "on-bench: finalize grip_lo/grip_hi + min_object_open (object width) + marker_size from measurement; confirm base_frame/gripper_frame against rebotarm_bringup URDF; hand_eye.json from M3b calibration."
+  "_note": "on-bench: finalize grip_lo/grip_hi (METERS, physical width) + min_object_open (object width) + marker_size from measurement; VALIDATE gripper_open_motor/gripper_close_motor/gripper_max_width (vendor RS defaults: 5.0/0.0 motor units over 0.09 m width) against the real gripper; frames base_link/gripper_end confirmed from the vendor RS config 2026-07-26; hand_eye.json from M3b calibration.",
+  "namespace": "rebotarm",
+  "move_duration_s": 3.0,
+  "gripper_open_motor": 5.0,
+  "gripper_close_motor": 0.0,
+  "gripper_max_width": 0.09
 }
