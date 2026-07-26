@@ -81,6 +81,7 @@ class B601RosTransport:
         self._node = None
         self._traj_client = None
         self._grip_client = None
+        self._spin_thread = None
         self._latest_arm = None      # [6] radians, name-ordered
         self._latest_grip = None     # motor units (RS: 0.0 closed .. 5.0 open)
         self._last_sent = None       # (positions, gripper) actually put on the wire
@@ -133,7 +134,26 @@ class B601RosTransport:
                 f"B601RosTransport: /{self._ns}/gripper/set service not available "
                 f"within {self._server_wait_s}s (pass expect_gripper=False for an "
                 f"arm with no gripper configured)")
-        threading.Thread(target=rclpy.spin, args=(self._node,), daemon=True).start()
+        self._spin_thread = threading.Thread(
+            target=rclpy.spin, args=(self._node,), daemon=True)
+        self._spin_thread.start()
+
+    def close(self) -> None:
+        """Graceful live shutdown: stop rclpy so the spin thread exits BEFORE
+        interpreter teardown -- without this the process dies in the (benign but
+        exit-code-clobbering) rclpy abort, and M3a's operator checks the exit code.
+        Idempotent; no-op when never connected."""
+        if self._node is None:
+            return
+        import rclpy
+        try:
+            rclpy.shutdown()                      # spin() returns
+        except Exception:
+            pass
+        if self._spin_thread is not None:
+            self._spin_thread.join(timeout=2.0)
+            self._spin_thread = None
+        self._node = None
 
     def publish(self, cmd) -> None:
         positions = _positions_from_cmd(cmd, self._limits)     # SAFETY: clamp before wire

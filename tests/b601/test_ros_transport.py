@@ -72,3 +72,7 @@ def test_latest_arm_only_mode():
     t._latest_arm = [0.1]*6
     st = t.latest()
     assert st is not None and st.gripper_position == 0.0
+
+def test_close_before_connect_is_noop():
+    from robot_b601.ros_transport import B601RosTransport
+    B601RosTransport().close()                    # must not raise, no ROS 2 needed

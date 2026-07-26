@@ -115,7 +115,10 @@ def main(argv=None):
     from robot_b601.ros_transport import B601RosTransport   # deferred: live path only
     transport = B601RosTransport(namespace=args.namespace, limits=limits,
                                  move_duration_s=args.move_duration)
-    res = run(transport, RealClock(), args.delta_max)
+    try:
+        res = run(transport, RealClock(), args.delta_max)
+    finally:
+        transport.close()      # clean rclpy shutdown -> honest exit code
     Path(args.out).write_text(res.to_json())
     print(f"score={res.score} primitives={len(res.traces)} -> {args.out}")
     return 0 if res.score == 1.0 else 1
