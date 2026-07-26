@@ -5,11 +5,16 @@ without ROS 2 or moving (always run this first).
 
 SAFETY (real arm moves on a live run):
   * e-stop within reach; clear the workspace.
-  * launch the vendor safe-park monitor: `ros2 run rebotarm_monitor_ros2 ...`.
-  * bring up the controller: `ros2 launch rebotarm_bringup ...`.
-  * finalize robot_b601/b601_rs_limits.json from the B601-RS URDF first.
+  * CAN up: `sudo ip link set can0 type can bitrate 1000000 restart-ms 100 && sudo ip link set can0 up`
+  * bring up the vendor driver (built at ../rebotarm_ros2):
+    `source ../rebotarm_ros2/install/setup.bash`
+    `ros2 launch rebotarm_bringup driver.launch.py model:=rs channel:=can0`
+  * enable the arm: `ros2 service call /rebotarm/enable std_srvs/srv/Trigger`
+  * robot_b601/b601_rs_limits.json now carries the RS URDF limits; VERIFY the
+    physical set_zero convention against /rebotarm/joint_states before moving
+    (URDF says joint2/joint3 live in [0, 3.14] -- if the arm reads negative
+    there at rest, re-zero per the vendor doc before any motion).
 Live use:
-  ros2 ... (bringup + monitor); then
   python3 scripts/b601_real_first_light.py --limits robot_b601/b601_rs_limits.json
 """
 import argparse
@@ -85,8 +90,10 @@ def main(argv=None):
                     help="preview clamped waypoints without ROS 2 or moving")
     ap.add_argument("--limits", default="robot_b601/b601_rs_limits.json")
     ap.add_argument("--delta-max", type=float, default=0.15)
-    ap.add_argument("--command-topic", default="/rebotarm/joint_command")
-    ap.add_argument("--state-topic", default="/joint_states")
+    ap.add_argument("--namespace", default="rebotarm",
+                    help="vendor driver namespace (topics/actions live under /<ns>/...)")
+    ap.add_argument("--move-duration", type=float, default=2.0,
+                    help="seconds per waypoint trajectory (gentle default)")
     ap.add_argument("--out", default="b601_real_first_light_result.json")
     args = ap.parse_args(argv)
 
@@ -106,8 +113,8 @@ def main(argv=None):
         return 0
 
     from robot_b601.ros_transport import B601RosTransport   # deferred: live path only
-    transport = B601RosTransport(command_topic=args.command_topic,
-                                 state_topic=args.state_topic, limits=limits)
+    transport = B601RosTransport(namespace=args.namespace, limits=limits,
+                                 move_duration_s=args.move_duration)
     res = run(transport, RealClock(), args.delta_max)
     Path(args.out).write_text(res.to_json())
     print(f"score={res.score} primitives={len(res.traces)} -> {args.out}")

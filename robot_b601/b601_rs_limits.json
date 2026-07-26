@@ -1,5 +1,5 @@
 {
-  "_comment": "Conservative default B601-RS joint limits (radians). FINALIZE from the B601-RS URDF (rebotarm_bringup) during on-bench bring-up.",
-  "lo": [-2.6, -2.6, -2.6, -2.6, -2.6, -2.6],
-  "hi": [2.6, 2.6, 2.6, 2.6, 2.6, 2.6]
+  "_comment": "B601-RS joint limits (radians) from the vendor RS URDF (rebotarm_ros2/src/rebotarm_bringup/description/urdf/00-arm-rs_asm-v3.urdf, fetched 2026-07-26). NOTE: joint2/joint3 are ASYMMETRIC [0, 3.14] in the URDF; positions are relative to the motors' physical set_zero calibration, so verify the arm's zero convention against /rebotarm/joint_states at the bench before the first live move (the M3b look poses assume joint2 can go negative).",
+  "lo": [-2.8, 0.0, 0.0, -1.57, -1.57, -3.14],
+  "hi": [2.8, 3.14, 3.14, 1.57, 1.57, 3.14]
 }
