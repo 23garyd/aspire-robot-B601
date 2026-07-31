@@ -1,8 +1,116 @@
 # CLAUDE_HANDOFF — ASPIRE
 
-_Last updated: 2026-07-21 — **B601 SOFTWARE TRACK COMPLETE** (M3a–M3d built, reviewed, pushed). Only on-bench live runs (hardware + credits) remain. @ `4481b6b`, `aspire_demo`._
+_Last updated: 2026-07-30 (session of 2026-07-26) — **B601 SOFTWARE 100% DONE AND
+LIVE-PATH-VALIDATED** (vendor driver integrated, M3a+M3c exercised end-to-end against a
+fake vendor driver, no hardware). @ `d9f5e81` on branch **`b601_live`**, `aspire_demo`.
+Every remaining step needs the physical bench._
 
-## ▣ B601 TRACK STATUS (2026-07-21) — all software milestones DONE + CI-proven
+## ▣ B601 TRACK STATUS (2026-07-26) — software finished; bench-only work remains
+
+This clone lives at `/home/demo/github_sow_2026_7/aspire_robot_engine` (epyc), branch
+`b601_live` (forked from `aspire_original_sim` @ `a35bae9`). Read the outer folder's
+`HANDOVER.md` first. Do NOT touch `/home/demo/aspire_robot_engine` (sim-campaign
+session's tree). Suite: `python3 -m pytest tests/ -q -p no:anyio` → **349 passed**.
+
+| Milestone | Software | Live step (needs bench) |
+|---|---|---|
+| M3a first light | DONE + **live path validated vs fake vendor driver** (score 1.0, exit 0) | bounded first move on the real arm |
+| M3b perception | DONE (dry-runs green) | print board, calibrate → real `hand_eye.json`; re-author look poses after the zero-convention check |
+| M3c cube-lift | DONE + **RealMotionBackend implemented & validated vs fake driver** | measure grip map + marker; real lift |
+| M3d repair loop | DONE (unchanged) | capstone `aspire.run` on the arm (credits, `env -u ANTHROPIC_API_KEY`) |
+
+## ▣ SESSION SUMMARY (2026-07-26e) — vendor-driver integration: bench gaps closed, software track finished
+
+**Status:** commits `4847b1a` → `a8409fa` → `d9f5e81`, all pushed to `aspire_demo`
+`b601_live`. **349 passed.** No `aspire/` changes.
+
+**Context (project reorg, same day):** the SOW folder split. This track's home is
+`/home/demo/github_sow_2026_7` (ASPIRE B601, epyc). The **HarnessVLA** track (the two
+internship SOW .docx — pi0.5 sim reproduction + ACT-on-B601; a DIFFERENT paper sharing
+the harness thesis) moved to `asus:~/github_sow_harnessVLA` (asus = 10.10.5.7, RTX A6000
+sm_86 — avoids the 5090's sm_120 pinned-fork risk; NOT an "RTX 6000 Ada"). Decision:
+the SOW milestone containers are filled by the ASPIRE work; HarnessVLA is the
+higher-risk intern/stretch track.
+
+**What shipped (bench-gap fixes, all hardware-free):**
+1. **Vendor stack installed** (`4847b1a` prep): `/home/demo/github_sow_2026_7/rebotarm_ros2`
+   = Seeed-Projects/reBotArmController_ROS2 + third_party/reBotArm_control_py, colcon-built
+   clean on Humble (5 pkgs). `pip install --user pyrealsense2 motorbridge` done.
+2. **Interface source-verified** (replaces ALL the M3a "confirm on-bench" gates): state
+   `/rebotarm/joint_states` (names `[joint1..joint6, gripper_joint1, gripper_joint2]`,
+   gripper entries in METERS — key off `msg.name`); arm cmd = `FollowJointTrajectory`
+   ACTION (the old JointState-command-topic placeholder was wrong, as the M3a review
+   predicted); driver REJECTS arm goals while TRAJ_RUNNING; gripper = `SetGripper`
+   service + `/gripper/state` in MOTOR units (RS close=0.0 open=5.0); services
+   `enable`/`disable`/`safe_home`; **vendor `MoveToPose` IK action exists → MoveIt2 is
+   NOT needed for M3c at all**.
+3. **`B601RosTransport` rewritten** (`4847b1a`): same seam; clamp-before-wire; name-keyed
+   joint ordering; re-stream dedupe (one goal per target change); rejected-goal retry
+   (next re-stream tick); fail-loud connect; `latest()` returns None until the REAL
+   gripper value arrived (no fake-0.0 slam); `close()` for clean rclpy teardown
+   (`a8409fa` — teardown abort was clobbering the operator-checked exit code).
+   Transport gripper units = MOTOR units (hold-in-place is exact, no conversion).
+4. **`b601_rs_limits.json` finalized from the RS URDF** (`4847b1a`): j1 ±2.8,
+   **j2/j3 [0, 3.14] ASYMMETRIC**, j4/j5 ±1.57, j6 ±3.14 (was ±2.6 placeholder).
+5. **`scripts/b601_fake_vendor_driver.py`** (`a8409fa`, extended `d9f5e81`): mimics the
+   vendor interface exactly (incl. TRAJ_RUNNING rejection, motor-unit gripper,
+   `MoveToPose`, `safe_home`, TF `base_link→gripper_end`). The REAL
+   `b601_real_first_light.py` live path ran against it: home read from true pose,
+   bounded bump, return — **score 1.0, exit 0**, retry path fired and recovered.
+6. **`RealMotionBackend` implemented** (`d9f5e81`, was a NotImplementedError stub):
+   `move_to_pose`→vendor `MoveToPose`; `move_to_joints`→FJT; `set_gripper`→`SetGripper`
+   with METERS↔motor-unit map (clamped width converted, never raw); `gripper_position()`
+   fail-loud before first state; `ee_pose`←TF; `reset`→`safe_home`+open; blocking calls
+   with bounded timeouts, REJECTED/TIMEOUT surfaced in `MoveResult.status`; `_connected`
+   now set (closes the M3c open Minor). Smoke vs fake driver: pose reached incl. yaw via
+   TF (quaternion sxyz convention proven against the vendor decoder), 0.02 m grip
+   round-tripped through motor units, reset re-opened to 0.08 m.
+7. Config: `cube_lift_real.json` + factory now carry `namespace`, `move_duration_s`,
+   `gripper_open_motor/close_motor/max_width`; `gripper_frame` corrected
+   `tool0`→`gripper_end` (vendor RS `end_effector_frame`).
+
+**Changed files:** `robot_b601/{ros_transport.py,motion.py,task.py,b601_rs_limits.json}`,
+`scripts/{b601_real_first_light.py,b601_fake_vendor_driver.py}` (new),
+`tests/b601/{test_ros_transport.py,test_motion_fake.py}` (+11 tests),
+`runs/2026-07-21-b601-real-cube-lift/cube_lift_real.json`. Outside the repo:
+`../HANDOVER.md`, `../CLAUDE.md`, `../rebotarm_ros2/` (vendor ws, not versioned here).
+
+**Canonical commands:**
+```bash
+python3 -m pytest tests/ -q -p no:anyio                      # 349 passed
+# hardware-free live-path smoke (two shells or bg the driver):
+source /opt/ros/humble/setup.bash && source ../rebotarm_ros2/install/setup.bash
+python3 scripts/b601_fake_vendor_driver.py &                 # kill the PYTHON pid after
+python3 scripts/b601_real_first_light.py --limits robot_b601/b601_rs_limits.json
+# bench-day bring-up (operator):
+sudo ip link set can0 type can bitrate 1000000 restart-ms 100 && sudo ip link set can0 up
+ros2 launch rebotarm_bringup driver.launch.py model:=rs channel:=can0
+ros2 service call /rebotarm/enable std_srvs/srv/Trigger
+```
+
+**Unresolved / bench-only (in order):**
+1. **No hardware on epyc** (2026-07-26): no arm/CAN/D405 on USB. OPEN DECISION: which PC
+   gets the arm — plan of record says epyc; if asus, this track + vendor ws must move.
+2. **Zero-convention check BEFORE any motion**: URDF says j2/j3 ∈ [0, 3.14] but the M3b
+   look poses use joint2=-0.3; positions are relative to physical `set_zero`. Read
+   `/rebotarm/joint_states` at rest and reconcile (re-author look poses or re-derive
+   limit signs). Documented in the limits JSON + first-light header.
+3. Bench-validate the gripper motor map (5.0/0.0 over 0.09 m are vendor defaults) +
+   measure `grip_lo/grip_hi`/`min_object_open`/`marker_size` in `cube_lift_real.json`.
+4. `hand_eye.json` still the identity placeholder (M3b live calibration + commit).
+5. sudo needs a password (agent has none): CAN link setup; `ros-humble-pinocchio` only
+   if the MoveIt demos are wanted (driver + our stack run without it).
+6. Stray-process trap confirmed again: kill the fake driver's PYTHON pid, not the shell
+   wrapper (`pgrep -af b601_fake_vendor_driver` self-matches its own wrapper — old
+   epyc pidfile wisdom applies).
+
+**Next steps:** bench session with a human + e-stop: CAN up → driver + enable → zero
+check → M3a (`--dry-run` first) → M3b calibrate (commit real `hand_eye.json` +
+residuals) → M3c lift → M3d capstone. No further code required.
+
+---
+
+## ▣ B601 TRACK STATUS (2026-07-21, superseded by the 2026-07-26 section above) — all software milestones DONE + CI-proven
 
 Branch `aspire_original_sim` @ `4481b6b`, pushed to `aspire_demo`.
 `python3 -m pytest tests/ -q -p no:anyio` → **299 passed**. No hardware/ROS 2/credits/LLM
