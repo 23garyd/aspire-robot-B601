@@ -1,0 +1,3 @@
+track,recorded_result,source_path,boundary
+B601 适配软件,27 项测试通过,../nov-m4/verification/2026-11-14-tests.txt,假驱动/无硬件检查；非性能benchmark
+端到端实机与修复,待补,../../../.project_notes/CLAUDE_HANDOFF.md,仍有台架验证边界
