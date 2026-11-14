@@ -1,5 +1,7 @@
 # ASPIRE B601 机器人适配层
 
+补充技术证据：[比较与演示材料索引](docs/evidence/nov-m4/README.md)。
+
 本仓库包含 ASPIRE 到 B601 的适配实现；从 [B601 技术证据索引](docs/evidence/oct-m3/README.md) 查看代码、测试与台架验证边界。下面保留早期 A2 仿真运行说明，不能用它证明 B601 实机完成。
 
 ## A2 历史运行说明
