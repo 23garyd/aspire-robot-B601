@@ -1,4 +1,8 @@
-# ASPIRE → AgiBot A2 — Run Guide
+# ASPIRE B601 机器人适配层
+
+本仓库包含 ASPIRE 到 B601 的适配实现；从 [B601 技术证据索引](docs/evidence/oct-m3/README.md) 查看代码、测试与台架验证边界。下面保留早期 A2 仿真运行说明，不能用它证明 B601 实机完成。
+
+## A2 历史运行说明
 
 Robot-execution layer for the ASPIRE architecture, driving a **live AgiBot A2 (26-joint
 bimanual humanoid) simulation**. Proves the full pipeline end-to-end: agent-facing sync
