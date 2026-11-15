@@ -44,6 +44,8 @@ Physical first motion, real calibration, grasping and the capstone still require
 
 ## Code Navigation and Verification
 
+For the complete guide and evidence map, see the [documentation index](docs/README.md).
+
 | Path | Contents |
 |---|---|
 | `robot_b601/` | B601 engine, protocol, motion states and execution limits |

@@ -1,9 +1,9 @@
-核验日期：2026-11-14
-范围：November/December 技术证据整理所用无硬件测试子集，未新增实机试验、GPU rollout、训练或模型调用。
-环境：macOS，现有 Anaconda；假驱动与无硬件组件测试
-命令：python -m pytest tests/b601/test_engine.py tests/b601/test_node.py tests/b601/test_transport.py tests/b601/test_motion_fake.py tests/b601/test_limits.py -q -p no:anyio
-退出码：0
-跳过项不计为通过；这些输出不证明干净机器重建或实体机器人安全演示完成。
+Verification date: 2026-11-14
+Scope: Hardware-free test subset used to prepare November/December technical evidence; no new physical robot experiments, GPU rollout, training, or model calls.
+Environment: macOS with the existing Anaconda installation; fake-driver and hardware-free component tests
+Command: python -m pytest tests/b601/test_engine.py tests/b601/test_node.py tests/b601/test_transport.py tests/b601/test_motion_fake.py tests/b601/test_limits.py -q -p no:anyio
+Exit code: 0
+Skipped items do not count as passes; these outputs do not establish completion of a clean-machine rebuild or a physical robot safety demonstration.
 
 ...........................                                              [100%]
 27 passed in 0.62s

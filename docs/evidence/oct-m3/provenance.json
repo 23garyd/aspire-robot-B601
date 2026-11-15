@@ -1,7 +1,7 @@
 {
   "implementation_commit": "1c60803ea71c2250a250f82bc613d771b975a7f0",
   "prepared_on": "2026-11-14",
-  "verification_scope": "仅记录指定的无硬件测试子集；未新增实机、仿真、训练或模型调用",
-  "source_snapshot_date": "见各技术附件与原实验记录",
+  "verification_scope": "Records only the specified hardware-free test subset; no new physical robot runs, simulations, training, or model calls",
+  "source_snapshot_date": "See the individual technical attachments and original experiment records",
   "acceptance_report_included": false
 }

@@ -1,9 +1,9 @@
-# 机器人适配的技术建议与后续工程项
+# Technical recommendations and follow-up engineering for robot adaptation
 
-依据：[B601 引擎](../../../robot_b601/engine.py)、[运动后端](../../../robot_b601/motion.py)、[历史交接记录](../../../.project_notes/CLAUDE_HANDOFF.md)。
+References: [B601 engine](../../../robot_b601/engine.py), [Motion backend](../../../robot_b601/motion.py), and [historical handoff records](../../../.project_notes/CLAUDE_HANDOFF.md).
 
-- 保持算法层与驱动/传输层分离，并用统一状态、结果与轨迹结构记录动作。假驱动适用于软件验证，不能代替物理标定、首次动作或安全演示。
-- 真实驱动的单位、关节名称、动作拒绝和超时应分别核对；入口脚本包含 real 不表示其所有测试使用实体机器人。
-- 原 hand_eye 等配置中的占位状态须按交接记录核实；不能把另一条 ACT pipeline 的录像当成本 ASPIRE pipeline 的台架证明。
+- Keep the algorithm layer separate from the driver/transport layer, and record actions using consistent state, result, and trajectory structures. Fake drivers support software verification but do not replace physical calibration, first motion, or safety demonstrations.
+- Check physical driver units, joint names, action rejection, and timeouts individually; an entry script containing real does not imply that all of its tests use a physical robot.
+- Verify placeholders in the original hand_eye and other configurations against the handoff records; video of another ACT pipeline cannot serve as bench evidence for this ASPIRE pipeline.
 
-后续工程：完成机械臂零位约定、夹爪单位、相机标定和受控首次动作；保留实际运行配置、遥测及视频；随后再验证端到端 ASPIRE 修复循环。当前仅提供代码及无硬件软件证据。
+Follow-up engineering: Complete the arm zero-position conventions, gripper units, camera calibration, and controlled first motion; retain the actual run configuration, telemetry, and video; then verify the end-to-end ASPIRE repair loop. Only code and hardware-free software evidence are currently provided.

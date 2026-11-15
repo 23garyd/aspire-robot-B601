@@ -1,5 +1,5 @@
 path,bytes,sha256,source
-README.md,1649,5d1e1056fea72eaeccfa6e6bb14b1cbd89ded49de1a3cffd5125fa7cf9735b85,2026-11-14 技术整理，未新增实机或模型实验
-implementation-commits.csv,1056,848108c4d6155ecc24bc017e965f35e7b451fd89f8f2655a6314249c596de3f9,2026-11-14 技术整理，未新增实机或模型实验
-provenance.json,237,78a23d4dd375d4eedb76cbb9c41fe3bfcd74d4b25ebe1c3949caa32e67b168cb,2026-11-14 技术整理，未新增实机或模型实验
-verification/2026-11-14-tests.txt,630,f585460d8d3fed2dbe9e3a7dd6220fde08fef41c59a3c1fa84b3ca2f8875556a,2026-11-14 指定无硬件测试真实输出，跳过项另列
+README.md,1649,5d1e1056fea72eaeccfa6e6bb14b1cbd89ded49de1a3cffd5125fa7cf9735b85,Technical documentation prepared on 2026-11-14; no new physical robot or model experiments
+implementation-commits.csv,1067,7e534acf949fcea501274e3035338ff51f346c20eb6f31c7847345c17bf815b0,Technical documentation prepared on 2026-11-14; no new physical robot or model experiments
+provenance.json,259,5a308c3893b4aa720452dce6c7666a9a06c6000dd9c44257739f6f02037dcd32,Technical documentation prepared on 2026-11-14; no new physical robot or model experiments
+verification/2026-11-14-tests.txt,736,ded92feed9b5b69ba9419cb77085b612396143e31232caefeaa39f6cf57251cb,Actual output of the specified hardware-free tests on 2026-11-14; skipped items listed separately
