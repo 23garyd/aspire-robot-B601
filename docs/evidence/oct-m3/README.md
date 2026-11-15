@@ -18,7 +18,7 @@
 
 本仓库证明 ASPIRE 到 B601 的适配实现；不能用它替代 HarnessVLA B601 仓库中的 ACT 实机试验或声称两套 pipeline 已被作为一个系统联合验证。
 
-仓库根 README 下方保留了 A2 仿真的历史说明；本索引及 `robot_b601/` 才是 B601 实现入口。
+A2仿真的旧说明已移至[历史指南](../../history/agibot-a2-run-guide.md)；[仓库首页](../../../README.md)、本索引及 `robot_b601/` 是当前B601实现入口。
 
 [manifest.csv](manifest.csv) 记录本目录新增技术文档与检查记录的哈希。
 
