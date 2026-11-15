@@ -1,5 +1,7 @@
 # AgiBot A2 Historical Simulation Run Guide
 
+For current guides and evidence, use the [documentation index](../README.md).
+
 This records an early simulation execution-layer trial, not current B601 hardware operating instructions or acceptance evidence. See the [current project overview](../../README.md). Original instructions are retained for traceability; machine addresses and commands reflect the historical environment.
 
 ## Historical A2 Run Instructions
