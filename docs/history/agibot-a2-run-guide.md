@@ -1,8 +1,8 @@
-# AgiBot A2 历史仿真运行说明
+# AgiBot A2 Historical Simulation Run Guide
 
-这是早期仿真执行层记录，不是当前B601硬件的操作手册或验收材料。当前项目入口见[仓库首页](../../README.md)。保留原始说明用于历史追溯，机器地址和命令反映当时环境。
+This records an early simulation execution-layer trial, not current B601 hardware operating instructions or acceptance evidence. See the [current project overview](../../README.md). Original instructions are retained for traceability; machine addresses and commands reflect the historical environment.
 
-## A2 历史运行说明
+## Historical A2 Run Instructions
 
 Robot-execution layer for the ASPIRE architecture, driving a **live AgiBot A2 (26-joint
 bimanual humanoid) simulation**. Proves the full pipeline end-to-end: agent-facing sync
