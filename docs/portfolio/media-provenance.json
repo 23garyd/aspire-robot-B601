@@ -6,8 +6,9 @@
     {
       "kind": "explanatory_diagram",
       "path": "docs/portfolio/assets/architecture.svg",
-      "sha256": "2f82791d0b737a092020e05447649073e0e7305662c6e13b6161e1392330fe01",
-      "caption": "依当前代码边界绘制的软件结构示意，非实验画面或新增执行证据"
+      "sha256": "e520a5c63125651c94f6c55ed7001dfd290922281b6a9006c80326fa22caa45a",
+      "caption": "Software architecture illustration based on current code boundaries; not experimental footage or new execution evidence"
     }
-  ]
+  ],
+  "documentation_updated_at": "2026-11-14"
 }
