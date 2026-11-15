@@ -1,5 +1,5 @@
 path,bytes,sha256,source
-README.md,2489,e2e96c4d378478fbbefca6daa6c9791edfb0422bae3c83e9e4b23f7d962667a5,技术索引路径更新：2026-11-14；历史附件内容未改
+README.md,2903,2e2bfd020eb3283b3368dd0cd3d34f4a6f320cc6ac61b479310ee1f80881e9a2,技术索引路径更新：2026-11-14；历史附件内容未改
 implementation-commits.csv,1073,69554211eafe0dfac10c21c3c71682065d651877c4d2771ea61fed7e352a6531,技术整理：2026-11-14
 provenance.json,328,30756865cf3773731cbd1542019920d08c12de4d5878dde1f1489729fd8a07a4,技术整理：2026-11-14
 verification/2026-11-14-tests.txt,558,5b3a581afb51aeee427cff25f753a7dcc7591bc28c4ac5bdba0f5789c7d86c7e,2026-11-14 指定测试子集的真实输出
